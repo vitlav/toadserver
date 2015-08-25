@@ -1,0 +1,23 @@
+name = "ipfs"
+
+[service]
+image = "eris/toadserver"
+ports = [ "11113:11113" ]
+volumes = [  ]
+environment = [  ]
+
+[services]
+#validators will have chain as dep
+#light clients shouldn't have to run a tmint node
+dependencies = [ "ipfs", "eris/keys" ] 
+
+[maintainer]
+name = "Eris Industries"
+email = "support@erisindustries.com"
+
+[location]
+repository = "github.com/eris-ltd/toadserver"
+
+[machine]
+include = [ "docker" ]
+requires = [ "" ]
