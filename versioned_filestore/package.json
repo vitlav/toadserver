@@ -1,0 +1,24 @@
+{
+  "name": "versioned_filestore",
+  "version": "0.0.1",
+  "description": "Contracts for an ipfs-backed versioned filestore",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "AndreasEris",
+  "license": "LGPLv3",
+  "dependencies": {
+    "bignumber.js": "^2.0.7",
+    "eris-contracts": "^0.10.24",
+    "fs-extra": "^0.23.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-debug": "^2.1.0",
+    "gulp-smake": "^0.1.3",
+    "gulp-util": "^3.0.6",
+    "require-dir": "^0.3.0",
+    "del": "^1.2.0"
+  }
+}
