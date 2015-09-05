@@ -3,19 +3,18 @@ package main
 import (
 	"bytes"
 	"fmt"
-
 	"io/ioutil"
 	"net/http"
 	"strings"
 
-	"github.com/eris-ltd/common/go/ipfs"
+	"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/eris-ltd/common/go/ipfs"
 )
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-
+		//TODO get amt from url
 		str := r.URL.Path[1:]
-		fn := strings.Split(str, "/")[1]
+		fn := strings.Split(str, "/")[0]
 
 		body := r.Body
 		b, err := ioutil.ReadAll(body)
@@ -28,15 +27,14 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Printf("error writing temp file: %v\n", err)
 		}
-
+		//should just put on whoever is doing the sending's gateway; since cacheHash won't send it there anyways
 		hash, err := ipfs.SendToIPFS(fn, "eris", bytes.NewBuffer([]byte{}))
 		if err != nil {
 			fmt.Printf("error sending to IPFS: %v\n", err)
 		}
 		//TODO rm file
 
-		amt := r.Header.Get("amt") //put in URL
-		_, _ = UpdateNameReg(fn, hash, amt)
+		_, _ = UpdateNameReg(fn, hash, "")
 
 	}
 }
