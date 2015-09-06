@@ -35,7 +35,7 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) {
 		}
 
 		rpcAddr := "http://0.0.0.0:46657"
-		rec, err1 := core.Broadcast(tx, rpcAddr)
+		_, err1 := core.Broadcast(tx, rpcAddr)
 		if err1 != nil {
 			fmt.Printf("error broadcasting: %v\n", err1)
 		}
@@ -43,7 +43,7 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) {
 		//TODO check Name reg
 
 		endpoint := "http://0.0.0.0:11113/" + "cacheHash/" + hash
-		resp, err2 := http.Post(endpoint, "", nil)
+		_, err2 := http.Post(endpoint, "", nil)
 		if err2 != nil {
 			fmt.Printf("cache post error: %v\n", err2)
 		}
