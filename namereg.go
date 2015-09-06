@@ -30,7 +30,7 @@ func UpdateNameReg(fileName, hash, amt string) (string, error) {
 	}
 
 	//sign but don't broadcast
-	_, err := core.SignAndBroadcast(chainID, "", signAddr, nTx, true, false, false)
+	_, err = core.SignAndBroadcast(chainID, "", signAddr, nTx, true, false, false)
 	if err != nil {
 		fmt.Printf("sign error: %v\n", err)
 	}
