@@ -53,7 +53,7 @@ func postTxData(nodeAddr, hash string, txData []byte) error {
 	txD := bytes.NewReader(txData)
 	//it can also query for th name reg to ensure things are good
 	endpoint := "http://0.0.0.0:11113/" + "receiveNameTx/" + hash
-	resp, err := http.Post(endpoint, "", txD)
+	_, err := http.Post(endpoint, "", txD)
 	if err != nil {
 		fmt.Printf("post error: %v\n", err)
 	}
