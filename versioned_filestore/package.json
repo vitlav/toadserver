@@ -10,7 +10,9 @@
   "license": "LGPLv3",
   "dependencies": {
     "bignumber.js": "^2.0.7",
+    "body-parser": "^1.13.3",
     "eris-contracts": "^0.10.24",
+    "express": "^4.13.3",
     "fs-extra": "^0.23.1"
   },
   "devDependencies": {
@@ -20,5 +22,12 @@
     "gulp-util": "^3.0.6",
     "require-dir": "^0.3.0",
     "del": "^1.2.0"
+  },
+	  "eris": {
+    "chain_name": "$chain",
+    "test_type": "manual",
+    "deploy_type": "manual",
+    "test_task": "default",
+    "deploy_task": "default"
   }
 }
