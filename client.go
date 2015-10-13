@@ -16,8 +16,9 @@ var (
 
 	DefaultChainID string
 
-	REQUEST_TYPE = "JSONRPC"
-	client       cclient.Client
+	REQUEST_TYPE = "HTTP"
+
+//	client       cclient.Client
 )
 
 // override the hardcoded defaults with env variables if they're set
@@ -31,27 +32,34 @@ func init() {
 	if chainID != "" {
 		DefaultChainID = chainID
 	}
+
 }
 
 func getInfos(fileName string) string {
+	c := cclient.NewClient(DefaultNodeRPCAddr, REQUEST_TYPE)
 	if fileName == "" {
 		//to eventually support an endpoint that lists available files
-		_, err := client.ListNames()
+		_, err := c.ListNames()
 		ifExit(err)
 		//formatOutput(r)
 		return "" //result of format output
 	} else {
-		_, err := client.GetName(fileName)
+		n, err := c.GetName(fileName)
 		ifExit(err)
+
+		name := n.Entry.Data
+		fmt.Printf("naaame: %v", name)
+
 		//formatOutput(r)
-		return "" //result of format output
+		return name //result of format output
 	}
 }
 
 //this func is just a check
 func checkAddr(addr string, w io.Writer) error {
+	c := cclient.NewClient(DefaultNodeRPCAddr, REQUEST_TYPE)
 	if addr == "" {
-		_, err := client.ListAccounts()
+		_, err := c.ListAccounts()
 		ifExit(err)
 		//formatOutput(r)
 		return nil //result of format output
@@ -60,7 +68,7 @@ func checkAddr(addr string, w io.Writer) error {
 		if err != nil {
 			exit(fmt.Errorf("Addr %s is improper hex: %v", addr, err))
 		}
-		r, err := client.GetAccount(addrBytes)
+		r, err := c.GetAccount(addrBytes)
 		ifExit(err)
 		if r == nil {
 			exit(fmt.Errorf("Account %X does not exist", addrBytes))
