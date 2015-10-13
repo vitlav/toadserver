@@ -54,14 +54,10 @@ func GetConfig(rootDir string) cfg.Config {
 	if mapConfig.IsSet("chain_id") {
 		Exit("Cannot set 'chain_id' via config.toml")
 	}
-	if mapConfig.IsSet("version") {
-		Exit("Cannot set 'version' via config.toml")
+	if mapConfig.IsSet("revision_file") {
+		Exit("Cannot set 'revision_file' via config.toml. It must match what's in the Makefile")
 	}
-	mapConfig.SetDefault("chain_id", "tendermint_testnet_10")
-	// Major: alpha
-	// Minor: encrypted p2p!
-	// Revision: ripemd for NewContractAddress
-	mapConfig.SetDefault("version", "0.5.1")
+	mapConfig.SetDefault("chain_id", "tendermint_testnet_11.c") // TODO ALSO UPDATE GENESIS BELOW!!!
 	mapConfig.SetDefault("genesis_file", rootDir+"/genesis.json")
 	mapConfig.SetDefault("moniker", "anonymous")
 	mapConfig.SetDefault("node_laddr", "0.0.0.0:46656")
@@ -72,9 +68,12 @@ func GetConfig(rootDir string) cfg.Config {
 	mapConfig.SetDefault("priv_validator_file", rootDir+"/priv_validator.json")
 	mapConfig.SetDefault("db_backend", "leveldb")
 	mapConfig.SetDefault("db_dir", rootDir+"/data")
+	mapConfig.SetDefault("vm_log", true)
 	mapConfig.SetDefault("log_level", "info")
 	mapConfig.SetDefault("rpc_laddr", "0.0.0.0:46657")
-	mapConfig.SetDefault("revisions_file", rootDir+"/revisions")
+	mapConfig.SetDefault("prof_laddr", "")
+	mapConfig.SetDefault("revision_file", rootDir+"/revision")
+	mapConfig.SetDefault("local_routing", false)
 	return mapConfig
 }
 
@@ -92,7 +91,7 @@ node_laddr = "0.0.0.0:46656"
 seeds = "goldenalchemist.chaintest.net:46656"
 fast_sync = true
 db_backend = "leveldb"
-log_level = "debug"
+log_level = "notice"
 rpc_laddr = "0.0.0.0:46657"
 `
 
@@ -102,24 +101,56 @@ func defaultConfig(moniker string) (defaultConfig string) {
 }
 
 var defaultGenesis = `{
-    "chain_id": "tendermint_testnet_10",
+    "chain_id": "tendermint_testnet_11.c",
     "accounts": [
         {
             "address": "9FCBA7F840A0BFEBBE755E853C9947270A912D04",
-            "amount": 2098999998000000
+            "amount": 1991999998000000
         },
-				{
-					  "address": "B9FA4AB462B9C6BF6A62DB4AE77C9E7087209A04",
-						"amount": 1000000000000
-				},
+        {
+            "address": "964B1493BBE3312278B7DEB94C39149F7899A345",
+            "amount": 100000000000000
+        },
+        {
+            "address": "B9FA4AB462B9C6BF6A62DB4AE77C9E7087209A04",
+            "amount": 1000000000000
+        },
+        {
+            "address": "F171824590D69386F709E7B6704B369C5A370D60",
+            "amount": 1000000000000
+        },
+        {
+            "address": "56EFE746A13D9A6054AC89C3E2A361C2DB8B9EAE",
+            "amount": 1000000000000
+        },
+        {
+            "address": "7C2E032D8407EDF66A04D88CF0E1D9B15D98AE2D",
+            "amount": 1000000000000
+        },
+        {
+            "address": "636EF5823E082AD66EBC203FD4DFB1031F0C61CA",
+            "amount": 1000000000000
+        },
+        {
+            "address": "9008419E6351360A59B124E707E4CA2A5BFB9BE6",
+            "amount": 1000000000000
+        },
+        {
+            "address": "C78F48919B8A4030AD3E5ED643F8D2302E41953D",
+            "amount": 1000000000000
+        },
+        {
+            "address": "5290AC90CE2422DDC3F91F6A246F7E3C542EA51A",
+            "amount": 1000000000000
+        },
         {
             "address": "A88A61069B6660F30F65E8786AFDD4F1D8F625E9",
-						"amount": 1000000
-				},
+            "amount": 1000000
+        },
         {
             "address": "EE2EE9247973B4AFC3867CFE5F415410AC251B61",
-						"amount": 1000000
-				}
+            "amount": 1000000
+        }
     ],
     "validators": [
         {

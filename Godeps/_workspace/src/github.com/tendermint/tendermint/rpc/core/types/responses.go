@@ -98,6 +98,7 @@ type Receipt struct {
 }
 
 type ResultListUnconfirmedTxs struct {
+	N   int        `json:"n_txs"`
 	Txs []types.Tx `json:"txs"`
 }
 
@@ -123,7 +124,7 @@ type ResultEvent struct {
 
 type Response struct {
 	JSONRPC string `json:"jsonrpc"`
-	Id      string `json:"id"`
+	ID      string `json:"id"`
 	Result  Result `json:"result"`
 	Error   string `json:"error"`
 }
