@@ -28,9 +28,11 @@ func UpdateNameReg(fileName, hash, amt string) (string, error) {
 	if err != nil {
 		fmt.Printf("corename error: %v\n", err)
 	}
-
+	fmt.Printf("chainsOD %v\n", chainID)
+	fmt.Printf("signAddr %v\n", signAddr)
+	fmt.Printf("nTX %v\n", nTx)
 	//sign but don't broadcast
-	_, err = core.SignAndBroadcast(chainID, "", signAddr, nTx, true, false, false)
+	_, err = core.SignAndBroadcast(chainID, nodeAddr, signAddr, nTx, true, false, false)
 	if err != nil {
 		fmt.Printf("sign error: %v\n", err)
 	}

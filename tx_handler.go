@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/eris-ltd/common/go/ipfs"
@@ -34,7 +35,7 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("error reading binary: %v\n", err)
 		}
 
-		rpcAddr := "http://0.0.0.0:46657"
+		rpcAddr := os.Getenv("MINTX_NODE_ADDR")
 		_, err1 := core.Broadcast(tx, rpcAddr)
 		if err1 != nil {
 			fmt.Printf("error broadcasting: %v\n", err1)
