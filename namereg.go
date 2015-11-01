@@ -24,7 +24,7 @@ func UpdateNameReg(fileName, hash, amt string) (string, error) {
 	data := hash
 
 	//build and sign a nameTx, send it away for broadcasting
-	nTx, err := core.Name(nodeAddr, pubkey, addr, amtS, nonceS, feeS, name, data)
+	nTx, err := core.Name(nodeAddr, signAddr, pubkey, addr, amtS, nonceS, feeS, name, data)
 	if err != nil {
 		fmt.Printf("corename error: %v\n", err)
 	}
