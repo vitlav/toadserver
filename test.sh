@@ -18,6 +18,7 @@ eris keys export
 #cat ~/.eris/keys/data/$ADDR/$ADDR
 
 CHAIN_NAME=toadserver_test
+SERVICE_NAME=toadserver_test
 
 echo "Setting chain name:"
 echo "$CHAIN_NAME"
@@ -43,38 +44,23 @@ PUB=$(eris keys pub $ADDR)
 echo "$PUB"
 echo ""
 
-echo "Making genesis file:"
-GEN=$(eris chains make-genesis $CHAIN_NAME $PUB)
-echo "$GEN"
-echo ""
-
-echo "Piping genesis file to "$CHAIN_DIR"/genesis.json"
-echo "$GEN" > "$CHAIN_DIR/genesis.json"
+echo "Making genesis file & piping to ${CHAIN_DIR}/genesis.json"
+eris chains make-genesis $CHAIN_NAME $PUB > "${CHAIN_DIR}/genesis.json"
 
 echo "Copying default config to "$CHAIN_DIR"/default.toml"
-cp ~/.eris/chains/default/config.toml $CHAIN_DIR/
 echo ""
+cp ~/.eris/chains/default/config.toml $CHAIN_DIR/
 
 echo "Starting chain"
 eris chains new $CHAIN_NAME --dir $CHAIN_DIR
-#sleep 5
-#check that it is running
-#eris chains ls --running --quiet
-#if...
+sleep 2
 
-#ok, chain running, lets boot up the toadserver
+echo "Setting service definition file in:"
+echo "$HOME/.eris/services/${SERVICE_NAME}.toml"
 
-echo "Setting service definition file:"
-
-#CHAIN_NAME_1=$CHAIN_NAME"_1" ##dumb hack
 CHAIN_NAME_1="${CHAIN_NAME}_1"
-echo "$PUB"
-#PK="pk=${PUB}"
+PK=${PUB//[^A-Z0-9]/} # hmmmm
 
-PK=${PUB//[^A-Z0-9]/}
-echo "$PK"
-
-#"MINTX_PUBKEY=$PUB",
 read -r -d '' SERV_DEF << EOM
 name = "toadserver_test"
 
@@ -87,8 +73,8 @@ environment = [
 "MINTX_NODE_ADDR=http://eris_chain_$CHAIN_NAME_1:46657/",
 "MINTX_CHAINID=$CHAIN_NAME", 
 "MINTX_SIGN_ADDR=http://keys:4767",
-"ERIS_IPFS_HOST=http://ipfs",
 "MINTX_PUBKEY=$PK",
+"ERIS_IPFS_HOST=http://ipfs",
 ]
 
 #chain = "$chain" //todo get this working
@@ -113,29 +99,76 @@ include = [ "docker" ]
 requires = [ "" ]
 EOM
 
-echo "$SERV_DEF"
-echo ""
-
-echo "$SERV_DEF" > "$HOME/.eris/services/toadserver_test.toml"
+echo "$SERV_DEF" > "$HOME/.eris/services/${SERVICE_NAME}.toml"
 
 echo "Starting toadserver"
-eris services start toadserver_test
-sleep 5
+eris services start $SERVICE_NAME
+sleep 2
 
-#FILE_CONTENTS_POST="testing the toadserver"
-#TODO write some stuff to a file
+FILE_CONTENTS_POST="testing the toadserver"
+FILE_NAME=hungryToad.txt
+FILE_PATH=${CHAIN_DIR}/${FILE_NAME}
 
-#STATUS=$(curl -X POST http://0.0.0.0:11113/postfile/$FILE_NAME --data-binary \"@$PATH_TO_FILE\")
+echo "$FILE_CONTENTS_POST" > "$FILE_PATH"
 
-#check status
+echo "--------POSTING to toadserver------------"
+echo ""
 
-#wait a bunch: tmint + ipfs stuff
-#sleep 10
+curl --silent -X POST http://0.0.0.0:11113/postfile/$FILE_NAME --data-binary "@$FILE_PATH"
 
-#FILE_CONTENTS_GET=$(curl -X GET http://0.0.0.0:11113/getfile/$FILE_NAME) #output directly or use -o to save to file & read
+echo "Sleep for 10 seconds: wait for IPFS & blocks to confirm"
+echo "."
+sleep 1
+echo ".."
+sleep 1
+echo "..."
+sleep 1
+echo "...."
+sleep 1
+echo "....."
+sleep 1
+echo "......"
+sleep 1
+echo "......."
+sleep 1
+echo "........"
+sleep 1
+echo "........."
+sleep 1
+echo ".........."
+sleep 1
+echo "AWAKE"
+echo ""
 
-#if $FILE_CONTENTS_PUT != $FILE_CONTENTS_GET
-#	fail
-#fi
+echo "----------GETING from toadserver-----------"
+FILE_CONTENTS_GET=$(curl --silent -X GET http://0.0.0.0:11113/getfile/$FILE_NAME) #output directly or use -o to save to file & read
 
+if [[ "$FILE_CONTENTS_POST" != "$FILE_CONTENTS_GET" ]]; then
+	echo "FAIL"
+	echo "GOT $FILE_CONTENTS_GET"
+	echo "EXPECTED $FILE_CONTENTS_POST"
+else
+	echo "PASS"
+fi
+
+echo ""
+echo "-------------TEARDOWN-----------------"
+echo ""
+echo "Kill & Remove Services & Dependencies"
+# NOTE: these commands can be nuanced
+#throws an error but cleans up anyway...chain doesn't work
+eris services stop $SERVICE_NAME --all --data --force --rm --vol --chain=$CHAIN_NAME
+# should be able to do above command with `eris service rm NAME --everything` or something
+
+eris chains stop $CHAIN_NAME --force --data --vol
+eris chains rm $CHAIN_NAME --data 
+
+echo "THAT ERROR IS EXPECTED, MOVE ALONG" # then fix the error
+
+echo "Removing latent dirs and files"
+rm -rf $CHAIN_DIR # takes care of $FILE_PATH
+rm -rf $HOME/.eris/keys/data/${ADDR}
+rm $HOME/.eris/services/${SERVICE_NAME}.toml
+
+echo "Toadserver tests complete."
 
