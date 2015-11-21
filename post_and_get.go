@@ -86,6 +86,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Printf("error reading file: %v\n", err)
 		}
+		fmt.Printf("des contents: %v\n", string(contents))
 		w.Write(contents) //outputfile
 
 		//or don't remove? & just output like above

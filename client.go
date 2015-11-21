@@ -53,7 +53,6 @@ func getInfos(fileName string) (string, error) {
 		ifExit(err)
 
 		name := n.Entry.Data
-		fmt.Printf("naaame: %v", name)
 
 		//formatOutput(r)
 		return name, nil //result of format output

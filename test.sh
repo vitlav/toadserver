@@ -52,7 +52,7 @@ echo ""
 cp ~/.eris/chains/default/config.toml $CHAIN_DIR/
 
 echo "Starting chain"
-eris chains new $CHAIN_NAME --dir $CHAIN_DIR
+eris chains new $CHAIN_NAME --dir $CHAIN_DIR -p
 sleep 2
 
 echo "Setting service definition file in:"
@@ -66,7 +66,7 @@ name = "toadserver_test"
 
 [service]
 name = "toadserver_test"
-image = "quay.io/eris/toadserver:latest"
+image = "quay.io/eris/toadserver:refac"
 ports = [ "11113:11113" ]
 volumes = [  ]
 environment = [  
@@ -103,18 +103,24 @@ echo "$SERV_DEF" > "$HOME/.eris/services/${SERVICE_NAME}.toml"
 
 echo "Starting toadserver"
 eris services start $SERVICE_NAME
-sleep 7
+sleep 5
 
 FILE_CONTENTS_POST="testing the toadserver"
 FILE_NAME=hungryToad.txt
-FILE_PATH=${CHAIN_DIR}/${FILE_NAME}
+FILE_PATH=$CHAIN_DIR/$FILE_NAME
 
-echo "$FILE_CONTENTS_POST" > "$FILE_PATH"
+echo "Filepath to pipe into:"
+echo "$FILE_PATH"
+
+echo "$FILE_CONTENTS_POST" > $FILE_PATH
+echo "Contents of stuff:"
+cat $FILE_PATH
+
 
 echo "--------POSTING to toadserver------------"
 echo ""
 
-curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@{$FILE_PATH}"
+curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@$FILE_PATH"
 
 echo "Sleep for 10 seconds: wait for IPFS & blocks to confirm"
 echo "."
@@ -136,12 +142,11 @@ sleep 1
 echo "........."
 sleep 1
 echo ".........."
-sleep 3
 echo "AWAKE"
 echo ""
 
 echo "----------GETING from toadserver-----------"
-FILE_CONTENTS_GET=$(curl --silent -X GET http://0.0.0.0:11113/getfile/$FILE_NAME) #output directly or use -o to save to file & read
+FILE_CONTENTS_GET=$(curl --silent -X GET http://0.0.0.0:11113/getfile/${FILE_NAME}) #output directly or use -o to save to file & read
 
 if [[ "$FILE_CONTENTS_POST" != "$FILE_CONTENTS_GET" ]]; then
 	echo "FAIL"
@@ -157,7 +162,7 @@ echo ""
 echo "Kill & Remove Services & Dependencies"
 # NOTE: these commands can be nuanced
 #throws an error but cleans up anyway...chain doesn't work
-eris services stop $SERVICE_NAME --all --data --force --rm --vol --chain=$CHAIN_NAME
+#eris services stop $SERVICE_NAME --all --data --force --rm --vol --chain=$CHAIN_NAME
 # should be able to do above command with `eris service rm NAME --everything` or something
 
 eris chains stop $CHAIN_NAME --force --data --vol
@@ -168,6 +173,6 @@ echo "THAT ERROR IS EXPECTED, MOVE ALONG" # then fix the error
 echo "Removing latent dirs and files"
 rm -rf $CHAIN_DIR # takes care of $FILE_PATH
 rm -rf $HOME/.eris/keys/data/${ADDR}
-rm $HOME/.eris/services/${SERVICE_NAME}.toml
+#rm $HOME/.eris/services/${SERVICE_NAME}.toml
 
 echo "Toadserver tests complete."
