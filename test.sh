@@ -66,7 +66,7 @@ name = "toadserver_test"
 
 [service]
 name = "toadserver_test"
-image = "quay.io/eris/toadserver:try"
+image = "quay.io/eris/toadserver:latest"
 ports = [ "11113:11113" ]
 volumes = [  ]
 environment = [  
@@ -114,7 +114,7 @@ echo "$FILE_CONTENTS_POST" > "$FILE_PATH"
 echo "--------POSTING to toadserver------------"
 echo ""
 
-SOME_RESULT=`curl --silent -X POST http://0.0.0.0:11113/postfile/$FILE_NAME --data-binary "@$FILE_PATH"`
+curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@{$FILE_PATH}"
 
 echo "Sleep for 10 seconds: wait for IPFS & blocks to confirm"
 echo "."
@@ -139,8 +139,7 @@ echo ".........."
 sleep 3
 echo "AWAKE"
 echo ""
-echo "$SOME_RESULT"
-echo ""
+
 echo "----------GETING from toadserver-----------"
 FILE_CONTENTS_GET=$(curl --silent -X GET http://0.0.0.0:11113/getfile/$FILE_NAME) #output directly or use -o to save to file & read
 
