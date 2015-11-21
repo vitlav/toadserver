@@ -17,8 +17,6 @@ var (
 	DefaultChainID string
 
 	REQUEST_TYPE = "HTTP"
-
-//	client       cclient.Client
 )
 
 // override the hardcoded defaults with env variables if they're set
