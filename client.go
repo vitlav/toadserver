@@ -33,7 +33,8 @@ func init() {
 
 }
 
-func getInfos(fileName string) string {
+//TODO better errors
+func getInfos(fileName string) (string, error) {
 	c := cclient.NewClient(DefaultNodeRPCAddr, REQUEST_TYPE)
 	if fileName == "" {
 		//to eventually support an endpoint that lists available files
@@ -46,7 +47,7 @@ func getInfos(fileName string) string {
 			i += 1
 		}
 		result := string.Join(res, "\n")*/
-		return "" //result of format output
+		return "", nil //result of format output
 	} else {
 		n, err := c.GetName(fileName)
 		ifExit(err)
@@ -55,7 +56,7 @@ func getInfos(fileName string) string {
 		fmt.Printf("naaame: %v", name)
 
 		//formatOutput(r)
-		return name //result of format output
+		return name, nil //result of format output
 	}
 }
 

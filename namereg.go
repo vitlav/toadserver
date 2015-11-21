@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,12 +14,11 @@ import (
 	"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/wire"
 )
 
-//TODO pass amt in from url. (make estimate of length)
-func UpdateNameReg(fileName, hash, amt string) (string, error) {
+func UpdateNameReg(fileName, hash string) error {
 	nodeAddr := os.Getenv("MINTX_NODE_ADDR")
 	signAddr := os.Getenv("MINTX_SIGN_ADDR")
 	chainID := os.Getenv("MINTX_CHAINID")
-	pubkey := os.Getenv("MINTX_PUBKEY")
+	pubkey := strings.TrimSpace(os.Getenv("MINTX_PUBKEY"))
 	addr := ""
 	amtS := "1000000"
 	nonceS := ""
@@ -27,42 +27,37 @@ func UpdateNameReg(fileName, hash, amt string) (string, error) {
 	data := hash
 
 	//build and sign a nameTx, send it away for broadcasting
+	fmt.Printf("Building a nameTx with:\tPUBKEY=%s\n", pubkey)
 	nTx, err := core.Name(nodeAddr, signAddr, pubkey, addr, amtS, nonceS, feeS, name, data)
 	if err != nil {
-		fmt.Printf("corename error: %v\n", err)
+		return errors.New(fmt.Sprintf("corename error: %v\n", err))
 	}
+	fmt.Printf("Success, nameTx created:\n%v\n", nTx)
+
 	fmt.Printf("chainsOD %v\n", chainID)
-	fmt.Printf("signAddr %v\n", signAddr)
-	fmt.Printf("nTX %v\n", nTx)
 	//sign but don't broadcast
+	fmt.Printf("Signing transaction with:\tCHAIN_ID=%s\n\t\tSIGN_ADDR=%s\n\t\t", chainID, signAddr)
 	_, err = core.SignAndBroadcast(chainID, nodeAddr, signAddr, nTx, true, false, false)
 	if err != nil {
-		fmt.Printf("sign error: %v\n", err)
+		return errors.New(fmt.Sprintf("sign error: %v\n", err))
+
 	}
 
 	n := new(int64)
 	w := new(bytes.Buffer)
 	wire.WriteBinary(nTx, w, n, &err)
 
-	err = postTxData(nodeAddr, hash, w.Bytes())
-	if err != nil {
-		fmt.Printf("post error: %v\n", err)
-	}
-	return "", nil
-}
-
-func postTxData(nodeAddr, hash string, txData []byte) error {
-
 	// post needs to be to toadserver endpoint, which'll route the TX to the node
 	// or should the toadserver have an endpoint that does that?
-	txD := bytes.NewReader(txData)
+	txD := bytes.NewReader(w.Bytes())
 	//it can also query for th name reg to ensure things are good
 	endpoint := "http://0.0.0.0:11113/" + "receiveNameTx/" + hash
-	_, err := http.Post(endpoint, "", txD)
+	_, err = http.Post(endpoint, "", txD)
 	if err != nil {
-		fmt.Printf("post error: %v\n", err)
+		return errors.New(fmt.Sprintf("post error: %v\n", err))
 	}
 	return nil
+
 }
 
 func receiveNameTx(w http.ResponseWriter, r *http.Request) {
@@ -94,11 +89,5 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) {
 
 		//TODO check Name reg
 
-		endpoint := "http://0.0.0.0:11113/" + "cacheHash/" + hash
-		_, err2 := http.Post(endpoint, "", nil)
-		if err2 != nil {
-			fmt.Printf("cache post error: %v\n", err2)
-		}
-		w.Write([]byte("success!"))
 	}
 }
