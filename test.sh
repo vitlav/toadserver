@@ -66,7 +66,7 @@ name = "toadserver_test"
 
 [service]
 name = "toadserver_test"
-image = "quay.io/eris/toadserver"
+image = "quay.io/eris/toadserver:try"
 ports = [ "11113:11113" ]
 volumes = [  ]
 environment = [  
@@ -103,7 +103,7 @@ echo "$SERV_DEF" > "$HOME/.eris/services/${SERVICE_NAME}.toml"
 
 echo "Starting toadserver"
 eris services start $SERVICE_NAME
-sleep 2
+sleep 7
 
 FILE_CONTENTS_POST="testing the toadserver"
 FILE_NAME=hungryToad.txt
@@ -114,7 +114,7 @@ echo "$FILE_CONTENTS_POST" > "$FILE_PATH"
 echo "--------POSTING to toadserver------------"
 echo ""
 
-curl --silent -X POST http://0.0.0.0:11113/postfile/$FILE_NAME --data-binary "@$FILE_PATH"
+SOME_RESULT=`curl --silent -X POST http://0.0.0.0:11113/postfile/$FILE_NAME --data-binary "@$FILE_PATH"`
 
 echo "Sleep for 10 seconds: wait for IPFS & blocks to confirm"
 echo "."
@@ -136,10 +136,11 @@ sleep 1
 echo "........."
 sleep 1
 echo ".........."
-sleep 1
+sleep 3
 echo "AWAKE"
 echo ""
-
+echo "$SOME_RESULT"
+echo ""
 echo "----------GETING from toadserver-----------"
 FILE_CONTENTS_GET=$(curl --silent -X GET http://0.0.0.0:11113/getfile/$FILE_NAME) #output directly or use -o to save to file & read
 
@@ -171,4 +172,3 @@ rm -rf $HOME/.eris/keys/data/${ADDR}
 rm $HOME/.eris/services/${SERVICE_NAME}.toml
 
 echo "Toadserver tests complete."
-
