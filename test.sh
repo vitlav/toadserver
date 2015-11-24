@@ -120,9 +120,10 @@ cat $FILE_PATH
 echo "--------POSTING to toadserver------------"
 echo ""
 
-curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@$FILE_PATH"
+STATUS=$(curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@$FILE_PATH")
 
 echo "Sleep for 10 seconds: wait for IPFS & blocks to confirm"
+echo "$STATUS"
 echo "."
 sleep 1
 echo ".."
@@ -162,7 +163,7 @@ echo ""
 echo "Kill & Remove Services & Dependencies"
 # NOTE: these commands can be nuanced
 #throws an error but cleans up anyway...chain doesn't work
-#eris services stop $SERVICE_NAME --all --data --force --rm --vol --chain=$CHAIN_NAME
+eris services stop $SERVICE_NAME --all --data --force --rm --vol --chain=$CHAIN_NAME
 # should be able to do above command with `eris service rm NAME --everything` or something
 
 eris chains stop $CHAIN_NAME --force --data --vol
