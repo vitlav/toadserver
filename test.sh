@@ -1,50 +1,57 @@
 #! /bin/bash
-
 echo "Starting keys"
-
-eris services start keys
-sleep 3
+echo ""
+eris services start keys -p
+sleep 2
 
 echo "Generating a key"
-ADDR=$(eris keys gen)
+echo ""
+ADDR=`eris keys gen`
 
-echo "OUR ADDRESS:"
+echo "ADDRESS:"
 echo "$ADDR"
 echo ""
 
+echo "Setting pubkey"
+echo ""
+PUB=`eris keys pub $ADDR`
+echo "PUBKEY:"
+echo "$PUB"
+echo ""
+
 echo "Exporting keys from container to host"
-eris keys export
+echo ""
+eris keys export $ADDR
 
-#cat ~/.eris/keys/data/$ADDR/$ADDR
-
-CHAIN_NAME=toadserver_test
-SERVICE_NAME=toadserver_test
 
 echo "Setting chain name:"
+CHAIN_NAME=toadserver_chn
 echo "$CHAIN_NAME"
 echo ""
 
-CHAIN_DIR=~/.eris/chains/$CHAIN_NAME
-mkdir $CHAIN_DIR
+echo "Setting service name:"
+SERVICE_NAME=toadserver_srv
+echo "$SERVICE_NAME"
+echo ""
+
 
 echo "Setting and making chain directory:"
+CHAIN_DIR=~/.eris/chains/$CHAIN_NAME
+mkdir $CHAIN_DIR
 echo "$CHAIN_DIR"
 echo ""
 
 echo "Converting key to tendermint format:"
-PRIV=$(eris keys convert $ADDR)
+PRIV=`eris keys convert $ADDR`
 echo "$PRIV"
 echo ""
 
 echo "Piping key to "$CHAIN_DIR"/priv_validator.json"
+echo ""
 echo "$PRIV" > "$CHAIN_DIR/priv_validator.json"
 
-echo "Setting pubkey:"
-PUB=$(eris keys pub $ADDR)
-echo "$PUB"
-echo ""
-
 echo "Making genesis file & piping to ${CHAIN_DIR}/genesis.json"
+echo ""
 eris chains make-genesis $CHAIN_NAME $PUB > "${CHAIN_DIR}/genesis.json"
 
 echo "Copying default config to "$CHAIN_DIR"/default.toml"
@@ -52,40 +59,34 @@ echo ""
 cp ~/.eris/chains/default/config.toml $CHAIN_DIR/
 
 echo "Starting chain"
+echo ""
 eris chains new $CHAIN_NAME --dir $CHAIN_DIR -p
 sleep 2
 
 echo "Setting service definition file in:"
 echo "$HOME/.eris/services/${SERVICE_NAME}.toml"
 
-CHAIN_NAME_1="${CHAIN_NAME}_1"
 PK=${PUB//[^A-Z0-9]/} # hmmmm
 
 read -r -d '' SERV_DEF << EOM
-name = "toadserver_test"
+name = "$SERVICE_NAME"
+chain = "\$chain:toad:l"
 
 [service]
-name = "toadserver_test"
+name = "$SERVICE_NAME"
 image = "quay.io/eris/toadserver:refac"
 ports = [ "11113:11113" ]
 volumes = [  ]
 environment = [  
-"MINTX_NODE_ADDR=http://eris_chain_$CHAIN_NAME_1:46657/",
+"MINTX_NODE_ADDR=http://toad:46657/",
 "MINTX_CHAINID=$CHAIN_NAME", 
 "MINTX_SIGN_ADDR=http://keys:4767",
 "MINTX_PUBKEY=$PK",
 "ERIS_IPFS_HOST=http://ipfs",
 ]
 
-#chain = "$chain" //todo get this working
-
-#validators will have chain as dep
-#light clients shouldn't have to run a tmint node
-
 [dependencies]
 services = [ "ipfs", "keys" ]
-
-
 
 [maintainer]
 name = "Eris Industries"
@@ -102,28 +103,22 @@ EOM
 echo "$SERV_DEF" > "$HOME/.eris/services/${SERVICE_NAME}.toml"
 
 echo "Starting toadserver"
-eris services start $SERVICE_NAME
-sleep 5
+echo ""
+eris services start $SERVICE_NAME --chain=$CHAIN_NAME
+sleep 2
 
 FILE_CONTENTS_POST="testing the toadserver"
 FILE_NAME=hungryToad.txt
 FILE_PATH=$CHAIN_DIR/$FILE_NAME
 
-echo "Filepath to pipe into:"
-echo "$FILE_PATH"
-
 echo "$FILE_CONTENTS_POST" > $FILE_PATH
-echo "Contents of stuff:"
-cat $FILE_PATH
-
 
 echo "--------POSTING to toadserver------------"
 echo ""
 
-STATUS=$(curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@$FILE_PATH")
+curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@$FILE_PATH"
 
-echo "Sleep for 10 seconds: wait for IPFS & blocks to confirm"
-echo "$STATUS"
+echo "Sleeping for 5 seconds to wait for IPFS & blocks to confirm"
 echo "."
 sleep 1
 echo ".."
@@ -134,21 +129,15 @@ echo "...."
 sleep 1
 echo "....."
 sleep 1
-echo "......"
-sleep 1
-echo "......."
-sleep 1
-echo "........"
-sleep 1
-echo "........."
-sleep 1
-echo ".........."
-echo "AWAKE"
 echo ""
 
 echo "----------GETING from toadserver-----------"
+echo ""
+
 FILE_CONTENTS_GET=$(curl --silent -X GET http://0.0.0.0:11113/getfile/${FILE_NAME}) #output directly or use -o to save to file & read
 
+echo "Comparing posted content with getted content"
+echo ""
 if [[ "$FILE_CONTENTS_POST" != "$FILE_CONTENTS_GET" ]]; then
 	echo "FAIL"
 	echo "GOT $FILE_CONTENTS_GET"
@@ -161,19 +150,21 @@ echo ""
 echo "-------------TEARDOWN-----------------"
 echo ""
 echo "Kill & Remove Services & Dependencies"
+echo ""
 # NOTE: these commands can be nuanced
-#throws an error but cleans up anyway...chain doesn't work
-eris services stop $SERVICE_NAME --all --data --force --rm --vol --chain=$CHAIN_NAME
-# should be able to do above command with `eris service rm NAME --everything` or something
+#stop/rm chain as dep doesn't work
+eris services stop $SERVICE_NAME --all --data --force --rm --vol #--chain=$CHAIN_NAME 
+#throws an error but cleans up anyway; see https://github.com/eris-ltd/eris-cli/issues/345
+echo "API Error is false positive" # then fix the error
 
 eris chains stop $CHAIN_NAME --force --data --vol
 eris chains rm $CHAIN_NAME --data 
 
-echo "THAT ERROR IS EXPECTED, MOVE ALONG" # then fix the error
 
 echo "Removing latent dirs and files"
-rm -rf $CHAIN_DIR # takes care of $FILE_PATH
+rm -rf $CHAIN_DIR 
 rm -rf $HOME/.eris/keys/data/${ADDR}
-#rm $HOME/.eris/services/${SERVICE_NAME}.toml
+rm $HOME/.eris/services/${SERVICE_NAME}".toml"
+rm $HOME/.eris/chains/${CHAIN_NAME}".toml"
 
 echo "Toadserver tests complete."
