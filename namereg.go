@@ -18,7 +18,7 @@ func UpdateNameReg(fileName, hash string) error {
 	nodeAddr := os.Getenv("MINTX_NODE_ADDR")
 	signAddr := os.Getenv("MINTX_SIGN_ADDR")
 	chainID := os.Getenv("MINTX_CHAINID")
-	pubkey := strings.TrimSpace(os.Getenv("MINTX_PUBKEY"))
+	pubkey := strings.TrimSpace(os.Getenv("MINTX_PUBKEY")) //because bash
 	addr := ""
 	amtS := "1000000"
 	nonceS := ""
@@ -34,7 +34,6 @@ func UpdateNameReg(fileName, hash string) error {
 	}
 	fmt.Printf("Success, nameTx created:\n%v\n", nTx)
 
-	fmt.Printf("chainsOD %v\n", chainID)
 	//sign but don't broadcast
 	fmt.Printf("Signing transaction with:\tCHAIN_ID=%s\n\t\tSIGN_ADDR=%s\n\t\t", chainID, signAddr)
 	_, err = core.SignAndBroadcast(chainID, nodeAddr, signAddr, nTx, true, false, false)
@@ -47,10 +46,10 @@ func UpdateNameReg(fileName, hash string) error {
 	w := new(bytes.Buffer)
 	wire.WriteBinary(nTx, w, n, &err)
 
-	// post needs to be to toadserver endpoint, which'll route the TX to the node
-	// or should the toadserver have an endpoint that does that?
+	// post needs to be to toadserver endpoint, which'll
+	// eventually route the TX to the nodes using mindy
 	txD := bytes.NewReader(w.Bytes())
-	//it can also query for th name reg to ensure things are good
+	//it can also query for the name reg to ensure things are good
 	endpoint := "http://0.0.0.0:11113/" + "receiveNameTx/" + hash
 	_, err = http.Post(endpoint, "", txD)
 	if err != nil {
@@ -64,8 +63,6 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		str := r.URL.Path[1:]
 		hash := strings.Split(str, "/")[1]
-
-		fmt.Printf("hash in rnt %v\n", hash)
 
 		txData, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -86,8 +83,6 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) {
 		if err1 != nil {
 			fmt.Printf("error broadcasting: %v\n", err1)
 		}
-
 		//TODO check Name reg
-
 	}
 }

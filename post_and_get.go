@@ -26,9 +26,6 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("error reading file body: %v\n", err)
 		}
 
-		//TODO write to temp file, rename file path
-		// & pass that into SendToIPFS
-		// then rm file
 		err = ioutil.WriteFile(fn, b, 0666)
 		if err != nil {
 			fmt.Printf("error writing temp file: %v\n", err)
@@ -49,14 +46,17 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Success updating the name registry")
 		}
 
-		//if no error:
+		if err := os.Remove(fn); err != nil {
+			fmt.Printf("remove file error: %v\n", err)
+		}
+
+		//TODO handle errors to prevent getting here...
 		fmt.Println("Pinning hash to your local IPFS node")
 		endpoint := "http://0.0.0.0:11113/" + "cacheHash/" + hash
 		_, err2 := http.Post(endpoint, "", nil)
 		if err2 != nil {
 			fmt.Printf("cache post error: %v\n", err2)
 		}
-		//success msg for pin in endpoint
 
 		fmt.Println("Congratulations, you have successfully added your file to the toadserver")
 	}
@@ -70,7 +70,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 		fn := strings.Split(str, "/")[1]
 
 		fmt.Printf("Looking for filename:\t%s\n", fn)
-		hash, err := getInfos(fn) //TODO make proper errors
+		hash, err := getInfos(fn)
 		if err != nil {
 			fmt.Printf("error getting name reg info: %v\n", err)
 		}
@@ -86,10 +86,8 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Printf("error reading file: %v\n", err)
 		}
-		fmt.Printf("des contents: %v\n", string(contents))
 		w.Write(contents) //outputfile
 
-		//or don't remove? & just output like above
 		err = os.Remove(fn)
 		if err != nil {
 			fmt.Printf("error removing file: %v\n", err)
@@ -99,10 +97,8 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//XXX this endpoint should also require authentication
-//if name reg update is legit, make post to ipfs hosts w/ hash in URL;
-//ultimately, it should query mindy to know where to go pinning...
-//(i.e., looks for toadserver nodes that expose this endpoint & hit it
+//XXX this endpoint should require authentication
+//if name reg update is legit, make post to ipfs hosts (using mindy!) w/ hash in URL;
 func cacheHash(w http.ResponseWriter, r *http.Request) {
 	str := r.URL.Path[1:]
 	hash := strings.Split(str, "/")[1]
