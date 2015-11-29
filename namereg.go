@@ -26,8 +26,8 @@ func UpdateNameReg(fileName, hash string) error {
 	name := fileName
 	data := hash
 
-	//build and sign a nameTx, send it away for broadcasting
-	fmt.Printf("Building a nameTx with:\tPUBKEY=%s\n", pubkey)
+	//build and sign a nameTx, send it away for signing
+	fmt.Printf("Building a nameTx with:\t\tPUBKEY=%s\n", pubkey)
 	nTx, err := core.Name(nodeAddr, signAddr, pubkey, addr, amtS, nonceS, feeS, name, data)
 	if err != nil {
 		return errors.New(fmt.Sprintf("corename error: %v\n", err))
@@ -35,7 +35,7 @@ func UpdateNameReg(fileName, hash string) error {
 	fmt.Printf("Success, nameTx created:\n%v\n", nTx)
 
 	//sign but don't broadcast
-	fmt.Printf("Signing transaction with:\tCHAIN_ID=%s\n\t\tSIGN_ADDR=%s\n\t\t", chainID, signAddr)
+	fmt.Printf("Signing transaction with:\tCHAIN_ID=%s\n\t\t\tSIGN_ADDR=%s\n", chainID, signAddr)
 	_, err = core.SignAndBroadcast(chainID, nodeAddr, signAddr, nTx, true, false, false)
 	if err != nil {
 		return errors.New(fmt.Sprintf("sign error: %v\n", err))
@@ -50,7 +50,7 @@ func UpdateNameReg(fileName, hash string) error {
 	// eventually route the TX to the nodes using mindy
 	txD := bytes.NewReader(w.Bytes())
 	//it can also query for the name reg to ensure things are good
-	endpoint := "http://0.0.0.0:11113/" + "receiveNameTx/" + hash
+	endpoint := "http://0.0.0.0:11113/" + "receiveNameTx/" //+ hash
 	_, err = http.Post(endpoint, "", txD)
 	if err != nil {
 		return errors.New(fmt.Sprintf("post error: %v\n", err))
@@ -61,8 +61,9 @@ func UpdateNameReg(fileName, hash string) error {
 
 func receiveNameTx(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		str := r.URL.Path[1:]
-		hash := strings.Split(str, "/")[1]
+		//TODO check valid Name reg
+		//str := r.URL.Path[1:]
+		//hash := strings.Split(str, "/")[1]
 
 		txData, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -83,6 +84,5 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) {
 		if err1 != nil {
 			fmt.Printf("error broadcasting: %v\n", err1)
 		}
-		//TODO check Name reg
 	}
 }
