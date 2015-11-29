@@ -23,7 +23,6 @@ echo "Exporting keys from container to host"
 echo ""
 eris keys export $ADDR
 
-
 echo "Setting chain name:"
 CHAIN_NAME=toadserver_chn
 echo "$CHAIN_NAME"
@@ -65,6 +64,7 @@ sleep 2
 
 echo "Setting service definition file in:"
 echo "$HOME/.eris/services/${SERVICE_NAME}.toml"
+echo ""
 
 PK=${PUB//[^A-Z0-9]/} # hmmmm
 
@@ -74,7 +74,7 @@ chain = "\$chain:toad:l"
 
 [service]
 name = "$SERVICE_NAME"
-image = "quay.io/eris/toadserver:refac"
+image = "quay.io/eris/toadserver"
 ports = [ "11113:11113" ]
 volumes = [  ]
 environment = [  
@@ -107,6 +107,9 @@ echo ""
 eris services start $SERVICE_NAME --chain=$CHAIN_NAME
 sleep 2
 
+#<< COMMENT
+echo "Generating test file"
+echo ""
 FILE_CONTENTS_POST="testing the toadserver"
 FILE_NAME=hungryToad.txt
 FILE_PATH=$CHAIN_DIR/$FILE_NAME
@@ -118,7 +121,7 @@ echo ""
 
 curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@$FILE_PATH"
 
-echo "Sleeping for 5 seconds to wait for IPFS & blocks to confirm"
+echo "Sleeping for 5 seconds: let IPFS boot & nameReg transaction confirm."
 echo "."
 sleep 1
 echo ".."
@@ -151,20 +154,24 @@ echo "-------------TEARDOWN-----------------"
 echo ""
 echo "Kill & Remove Services & Dependencies"
 echo ""
-# NOTE: these commands can be nuanced
+
 #stop/rm chain as dep doesn't work
 eris services stop $SERVICE_NAME --all --data --force --rm --vol #--chain=$CHAIN_NAME 
+
 #throws an error but cleans up anyway; see https://github.com/eris-ltd/eris-cli/issues/345
-echo "API Error is false positive" # then fix the error
+echo ""
+echo "API Error is false positive."
+echo ""
 
 eris chains stop $CHAIN_NAME --force --data --vol
 eris chains rm $CHAIN_NAME --data 
 
-
 echo "Removing latent dirs and files"
+echo ""
 rm -rf $CHAIN_DIR 
 rm -rf $HOME/.eris/keys/data/${ADDR}
 rm $HOME/.eris/services/${SERVICE_NAME}".toml"
 rm $HOME/.eris/chains/${CHAIN_NAME}".toml"
 
 echo "Toadserver tests complete."
+#COMMENT
