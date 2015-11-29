@@ -6,13 +6,6 @@ import (
 	"os"
 )
 
-//TODO use struct
-type Infos struct {
-	Filename string `json:"filename"`
-	Hash     string `json:"hash"`
-	//	BTCaddr  string `json:"btc_addr"`
-}
-
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/postfile/", postHandler) //post a file with its contents to gateway, returns hash
@@ -27,12 +20,6 @@ func main() {
 
 //-------------------------------------------------------
 //--helpers
-
-func exit(err error) {
-	fmt.Println(err)
-	os.Exit(1)
-}
-
 func ifExit(err error) {
 	if err != nil {
 		fmt.Println(err)

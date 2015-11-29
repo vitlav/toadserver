@@ -17,8 +17,6 @@ var (
 	DefaultChainID string
 
 	REQUEST_TYPE = "HTTP"
-
-//	client       cclient.Client
 )
 
 // override the hardcoded defaults with env variables if they're set
@@ -35,23 +33,26 @@ func init() {
 
 }
 
-func getInfos(fileName string) string {
+func getInfos(fileName string) (string, error) {
 	c := cclient.NewClient(DefaultNodeRPCAddr, REQUEST_TYPE)
 	if fileName == "" {
-		//to eventually support an endpoint that lists available files
+		//to support an endpoint that lists available files
 		_, err := c.ListNames()
 		ifExit(err)
-		//formatOutput(r)
-		return "" //result of format output
+		/*res := make([]string, len(names.Names))
+		i := 0
+		for n := range names.Names {
+			res[i] = n.Entry.Name
+			i += 1
+		}
+		result := string.Join(res, "\n")*/
+		return "", nil
 	} else {
 		n, err := c.GetName(fileName)
 		ifExit(err)
 
 		name := n.Entry.Data
-		fmt.Printf("naaame: %v", name)
-
-		//formatOutput(r)
-		return name //result of format output
+		return name, nil
 	}
 }
 
@@ -66,24 +67,19 @@ func checkAddr(addr string, w io.Writer) error {
 	} else {
 		addrBytes, err := hex.DecodeString(addr)
 		if err != nil {
-			exit(fmt.Errorf("Addr %s is improper hex: %v", addr, err))
+			ifExit(fmt.Errorf("Addr %s is improper hex: %v", addr, err))
 		}
 		r, err := c.GetAccount(addrBytes)
 		ifExit(err)
 		if r == nil {
-			exit(fmt.Errorf("Account %X does not exist", addrBytes))
+			ifExit(fmt.Errorf("Account %X does not exist", addrBytes))
 		}
 		r2 := r.Account
 		if r2 == nil {
-			exit(fmt.Errorf("Account %X does not exist", addrBytes))
+			ifExit(fmt.Errorf("Account %X does not exist", addrBytes))
 		}
-		//formatOutput(c, 1, r2)
 	}
-
-	//TODO deal with this gracefully
-	//	w.Write([]byte("Permission denied, invalid address\n"))
-	return nil //errors.New("Permission denied, invalid address")
-
-	//get more infos (like check if they have perms!)
-
+	//TODO get more infos (like check if they have perms!)
+	//something like: w.Write([]byte("Permission denied, invalid address\n"))
+	return nil
 }
