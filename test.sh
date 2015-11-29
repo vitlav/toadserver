@@ -63,10 +63,10 @@ eris chains new $CHAIN_NAME --dir $CHAIN_DIR -p
 sleep 2
 
 echo "Setting service definition file in:"
-echo "$HOME/.eris/services/${SERVICE_NAME}.toml"
 echo ""
+echo "$HOME/.eris/services/${SERVICE_NAME}.toml"
 
-PK=${PUB//[^A-Z0-9]/} # hmmmm
+PK=${PUB//[^A-Z0-9]/}
 
 read -r -d '' SERV_DEF << EOM
 name = "$SERVICE_NAME"
@@ -74,7 +74,7 @@ chain = "\$chain:toad:l"
 
 [service]
 name = "$SERVICE_NAME"
-image = "quay.io/eris/toadserver"
+image = "quay.io/eris/toadserver:0.11.0"
 ports = [ "11113:11113" ]
 volumes = [  ]
 environment = [  
