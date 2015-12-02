@@ -2,12 +2,20 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	//	"net"
 	"net/http"
 	"os"
+	"reflect"
 	"strings"
 	"time"
+
+	"github.com/eris-ltd/mint-client/Godeps/_workspace/src/github.com/tendermint/tendermint/types"
+	"github.com/tendermint/tendermint/wire"
+
+	cclient "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/rpc/core_client"
 
 	"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/eris-ltd/common/go/ipfs"
 )
@@ -71,16 +79,105 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//TODO handle errors to prevent getting here...
-		//[zr] also, odd that pinning rarely hangs, only post & get from IPFS
 		fmt.Println("Pinning hash to your local IPFS node")
+
 		endpoint := "http://0.0.0.0:11113/" + "cacheHash/" + hash
 		_, err2 := http.Post(endpoint, "", nil)
 		if err2 != nil {
 			fmt.Printf("cache post error: %v\n", err2)
 		}
 
+		//		names, _ := getTheNames()
+		names := []string{"toadserver1.interblock.io", "toadserver2.interblock.io", "toadserver3.interblock.io"}
+		for _, name := range names {
+			endpoint := "http://" + name + ":11113/cacheHash/" + hash
+			fmt.Printf("Pinning hash to remote IPFS/toadserver node: %s\n", name)
+			_, err3 := http.Post(endpoint, "", nil)
+			if err3 != nil {
+				fmt.Printf("cache post error to endpoint: %s\n%v\n", endpoint, err3)
+				continue
+			}
+		}
+
+		//TODO catch things before this stmt
 		fmt.Println("Congratulations, you have successfully added your file to the toadserver")
 	}
+}
+
+func getTheNames() ([]string, error) {
+	mindy := os.Getenv("TOADSERVER_IPFS_NODES")
+	mindyUrl := mindy + ":46657/"
+	//fmt.Printf("Pinning hash to you mindy nodes at:\t%s\n", mindyUrl)
+	c := cclient.NewClient(mindyUrl, "HTTP")
+
+	res, err := c.ListNames()
+	ifExit(err)
+
+	allTheNames, err := formatOutput([]string{}, 1, res)
+	if err != nil {
+		fmt.Printf("error formating output: %v\n")
+	}
+
+	byteNames := []byte(allTheNames)
+
+	rln := struct {
+		BlockHeight int                   `json:"block_height"`
+		Names       []*types.NameRegEntry `json:"names"`
+	}{}
+
+	/*type NameRegEntry struct {
+		Name    string `json:"name"`    // registered name for the entry
+		Owner   []byte `json:"owner"`   // address that created the entry
+		Data    string `json:"data"`    // data to store under this name
+		Expires int    `json:"expires"` // block at which this entry expires
+	}*/
+
+	if err := json.Unmarshal(byteNames, &rln); err != nil {
+		return []string{""}, err
+	}
+
+	names := make([]string, len(rln.Names))
+
+	for i, name := range rln.Names {
+		names[i] = name.Name
+	}
+
+	return names, nil
+}
+
+func prettyPrint(o interface{}) (string, error) {
+	var prettyJSON bytes.Buffer
+	err := json.Indent(&prettyJSON, wire.JSONBytes(o), "", "\t")
+	if err != nil {
+		return "", err
+	}
+	return string(prettyJSON.Bytes()), nil
+}
+
+func FieldFromTag(v reflect.Value, field string) (string, error) {
+	iv := v.Interface()
+	st := reflect.TypeOf(iv)
+	for i := 0; i < v.NumField(); i++ {
+		tag := st.Field(i).Tag.Get("json")
+		if tag == field {
+			return st.Field(i).Name, nil
+		}
+	}
+	return "", fmt.Errorf("Invalid field name")
+}
+
+func formatOutput(args []string, i int, o interface{}) (string, error) {
+	if len(args) < i+1 {
+		return prettyPrint(o)
+	}
+	arg0 := args[i]
+	v := reflect.ValueOf(o).Elem()
+	name, err := FieldFromTag(v, arg0)
+	if err != nil {
+		return "", err
+	}
+	f := v.FieldByName(name)
+	return prettyPrint(f.Interface())
 }
 
 func getHandler(w http.ResponseWriter, r *http.Request) {
