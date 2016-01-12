@@ -63,10 +63,15 @@ eris chains new $CHAIN_NAME --dir $CHAIN_DIR -p
 sleep 2
 
 echo "Setting service definition file in:"
-echo ""
 echo "$HOME/.eris/services/${SERVICE_NAME}.toml"
+echo ""
 
 PK=${PUB//[^A-Z0-9]/}
+
+
+echo "Setting TOADSERVER_IPFS_NODES"
+NODES="ip1,ip2,ip3" #give IPs where toadserver is running
+echo "$NODES"
 
 read -r -d '' SERV_DEF << EOM
 name = "$SERVICE_NAME"
@@ -74,7 +79,7 @@ chain = "\$chain:toad:l"
 
 [service]
 name = "$SERVICE_NAME"
-image = "quay.io/eris/toadserver:0.11.0"
+image = "quay.io/eris/toadserver:latest"
 ports = [ "11113:11113" ]
 volumes = [  ]
 environment = [  
@@ -83,6 +88,7 @@ environment = [
 "MINTX_SIGN_ADDR=http://keys:4767",
 "MINTX_PUBKEY=$PK",
 "ERIS_IPFS_HOST=http://ipfs",
+"TOADSERVER_IPFS_NODES=$NODES"
 ]
 
 [dependencies]
@@ -118,6 +124,7 @@ echo "$FILE_CONTENTS_POST" > $FILE_PATH
 
 echo "--------POSTING to toadserver------------"
 echo ""
+#TODO use services ports?
 
 curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@$FILE_PATH"
 

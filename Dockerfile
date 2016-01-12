@@ -9,7 +9,10 @@ ENV CLONE_PATH   $GOPATH/src/github.com/$REPO
 ENV INSTALL_PATH $INSTALL_BASE/$NAME
 
 RUN mkdir -p $CLONE_PATH
-WORKDIR $CLONE_PATH
+
+#for local buildz
+#COPY . $CLONE_PATH
+#WORKDIR $CLONE_PATH
 
 RUN git clone -q https://github.com/$REPO $CLONE_PATH
 RUN git checkout -q $BRANCH
