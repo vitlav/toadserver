@@ -20,7 +20,7 @@ func UpdateNameReg(fileName, hash string) error {
 	chainID := os.Getenv("MINTX_CHAINID")
 	pubkey := strings.TrimSpace(os.Getenv("MINTX_PUBKEY")) //because bash
 	addr := ""
-	amtS := "1000000"
+	amtS := "10000"
 	nonceS := ""
 	feeS := "0"
 	name := fileName
@@ -54,6 +54,9 @@ func UpdateNameReg(fileName, hash string) error {
 	_, err = http.Post(endpoint, "", txD)
 	if err != nil {
 		return errors.New(fmt.Sprintf("post error: %v\n", err))
+	}
+	if err := os.Remove(fileName); err != nil {
+		fmt.Printf("remove file error: %v\n", err)
 	}
 	return nil
 

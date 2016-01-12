@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/eris-ltd/mint-client/Godeps/_workspace/src/github.com/tendermint/tendermint/types"
-	"github.com/tendermint/tendermint/wire"
+	//"github.com/eris-ltd/mint-client/Godeps/_workspace/src/github.com/tendermint/tendermint/types"
+	"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/wire"
 
-	cclient "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/rpc/core_client"
+	//cclient "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/rpc/core_client"
 
 	"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/eris-ltd/common/go/ipfs"
 )
@@ -70,41 +70,50 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		err = UpdateNameReg(fn, hash)
 		if err != nil {
 			fmt.Printf("Error updating the name registry:\n%v\n", err)
+			//return err
 		} else {
 			fmt.Println("Success updating the name registry")
+			//			if err := cacheHashAll(hash); err != nil {
+			//				fmt.Printf("error caching hash: %v\n", err)
+			//			} else {
+			//				fmt.Println("Congratulations, you have successfully added your file to the toadserver")
 		}
+		//}
 
-		if err := os.Remove(fn); err != nil {
-			fmt.Printf("remove file error: %v\n", err)
-		}
-
-		//TODO handle errors to prevent getting here...
-		fmt.Println("Pinning hash to your local IPFS node")
-
-		endpoint := "http://0.0.0.0:11113/" + "cacheHash/" + hash
-		_, err2 := http.Post(endpoint, "", nil)
-		if err2 != nil {
-			fmt.Printf("cache post error: %v\n", err2)
-		}
-
-		//		names, _ := getTheNames()
-		names := []string{"toadserver1.interblock.io", "toadserver2.interblock.io", "toadserver3.interblock.io"}
-		for _, name := range names {
-			endpoint := "http://" + name + ":11113/cacheHash/" + hash
-			fmt.Printf("Pinning hash to remote IPFS/toadserver node: %s\n", name)
-			_, err3 := http.Post(endpoint, "", nil)
-			if err3 != nil {
-				fmt.Printf("cache post error to endpoint: %s\n%v\n", endpoint, err3)
-				continue
-			}
-		}
-
-		//TODO catch things before this stmt
-		fmt.Println("Congratulations, you have successfully added your file to the toadserver")
 	}
 }
 
-func getTheNames() ([]string, error) {
+func cacheHashAll(w http.ResponseWriter, r *http.Request) {
+	//func cacheHashAll(hash string) error {
+	str := r.URL.Path[1:]
+	hash := strings.Split(str, "/")[1]
+
+	//TODO handle errors to prevent getting here...
+	fmt.Println("Pinning hash to your local IPFS node")
+
+	endpoint := "http://0.0.0.0:11113/" + "cacheHash/" + hash
+	_, err := http.Post(endpoint, "", nil)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf("cache post error: %v\n", err)))
+	}
+
+	// IPaddrs, _ := getTheNames()
+	IPaddrs := os.Getenv("TOADSERVER_IPFS_NODES") //
+	IPs := strings.Split(IPaddrs, ",")
+	//IPaddrs := []string{"toadserver1.interblock.io", "toadserver2.interblock.io", "toadserver3.interblock.io"}
+	for _, ip := range IPs {
+		endpoint := "http://" + ip + ":11113/cacheHash/" + hash
+		fmt.Printf("Pinning hash to remote IPFS/toadserver node: %s\n", endpoint)
+		_, err := http.Post(endpoint, "", nil)
+		if err != nil {
+			fmt.Printf("cache post error to endpoint: %s\n%v\n", endpoint, err)
+			continue
+		}
+	}
+	//return nil
+}
+
+/*func getTheNames() ([]string, error) {
 	mindy := os.Getenv("TOADSERVER_IPFS_NODES")
 	mindyUrl := mindy + ":46657/"
 	//fmt.Printf("Pinning hash to you mindy nodes at:\t%s\n", mindyUrl)
@@ -125,12 +134,12 @@ func getTheNames() ([]string, error) {
 		Names       []*types.NameRegEntry `json:"names"`
 	}{}
 
-	/*type NameRegEntry struct {
+	type NameRegEntry struct {
 		Name    string `json:"name"`    // registered name for the entry
 		Owner   []byte `json:"owner"`   // address that created the entry
 		Data    string `json:"data"`    // data to store under this name
 		Expires int    `json:"expires"` // block at which this entry expires
-	}*/
+	}
 
 	if err := json.Unmarshal(byteNames, &rln); err != nil {
 		return []string{""}, err
@@ -144,6 +153,7 @@ func getTheNames() ([]string, error) {
 
 	return names, nil
 }
+*/
 
 func prettyPrint(o interface{}) (string, error) {
 	var prettyJSON bytes.Buffer
@@ -198,6 +208,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 		// 5 times.
 		fmt.Println("Getting file from IPFS")
 		passed := false
+		//TODO move this to common
 		for i := 0; i < 9; i++ {
 			err = ipfs.GetFromIPFS(hash, fn, "", bytes.NewBuffer([]byte{}))
 			if err != nil {
@@ -243,6 +254,6 @@ func cacheHash(w http.ResponseWriter, r *http.Request) {
 		strang := fmt.Sprintf("error pinning to local IPFS node: %v\n", err)
 		w.Write([]byte(strang))
 	} else {
-		fmt.Printf("Caching succesful:\t%s\n", pinned)
+		w.Write([]byte(fmt.Sprintf("Caching succesful:\t%s\n", pinned)))
 	}
 }
