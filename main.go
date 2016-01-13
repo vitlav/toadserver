@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/eris-ltd/toadserver/logger"
-
 	log "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	logger "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/eris-ltd/common/go/log"
 )
 
 func main() {

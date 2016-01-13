@@ -20,7 +20,7 @@
 		},
 		{
 			"ImportPath": "github.com/eris-ltd/common/go/log",
-			"Rev": "14615dc435f27af1ae9bea2517918c1d36fa9c12"
+			"Rev": "1f7474dd7c0f7e0b602afac18bd7b1b53dfd18a6"
 		},
 		{
 			"ImportPath": "github.com/eris-ltd/mint-client/mintx/core",
