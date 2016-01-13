@@ -20,7 +20,7 @@
 		},
 		{
 			"ImportPath": "github.com/eris-ltd/common/go/log",
-			"Rev": "14615dc435f27af1ae9bea2517918c1d36fa9c12"
+			"Rev": "1f7474dd7c0f7e0b602afac18bd7b1b53dfd18a6"
 		},
 		{
 			"ImportPath": "github.com/eris-ltd/mint-client/mintx/core",
@@ -137,6 +137,10 @@
 		{
 			"ImportPath": "golang.org/x/crypto/ripemd160",
 			"Rev": "4ed45ec682102c643324fae5dff8dab085b6c300"
+		},
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Rev": "ad63b06ab3877915532cd30073b45d6f7e02b7cd"
 		}
 	]
 }

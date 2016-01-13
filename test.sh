@@ -70,7 +70,8 @@ PK=${PUB//[^A-Z0-9]/}
 
 
 echo "Setting TOADSERVER_IPFS_NODES"
-NODES="ip1,ip2,ip3" #give IPs where toadserver is running
+#NODES="ip1,ip2,ip3" #give IPs where toadserver is running
+NODES="" #give IPs where toadserver is running
 echo "$NODES"
 
 read -r -d '' SERV_DEF << EOM
