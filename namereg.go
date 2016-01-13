@@ -36,7 +36,7 @@ func UpdateNameReg(fileName, hash string) error {
 		"name":            fileName,
 		"data":            data,
 		"amount":          amtS,
-	}).Warn("Building a nameTx with:\t\tPUBKEY=%s\n", pubkey)
+	}).Warn("Building a nameTx:")
 
 	nTx, err := core.Name(nodeAddr, signAddr, pubkey, addr, amtS, nonceS, feeS, name, data)
 	if err != nil {

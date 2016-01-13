@@ -27,7 +27,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		str := r.URL.Path[1:]
 		fn := strings.Split(str, "/")[1]
 
-		log.Warn("File name to register:\t%s\n", fn)
+		log.WithField("=>", fn).Warn("File to register:")
 
 		body := r.Body
 		b, err := ioutil.ReadAll(body)
@@ -109,7 +109,7 @@ func cacheHashAll(hash string) error {
 	IPs := strings.Split(IPaddrs, ",")
 	for _, ip := range IPs {
 		endpoint := fmt.Sprintf("http://%s:11113/cacheHash/%s", ip, hash)
-		log.WithField("=>", endpoint).Warn("Pinning hash to remote IPFS/toadserver node: %s\n", endpoint)
+		log.WithField("=>", endpoint).Warn("Pinning hash to remote IPFS/toadserver node:")
 		_, err := http.Post(endpoint, "", nil)
 		if err != nil {
 			log.WithField("=>", endpoint).Warn("error making post request to:")
