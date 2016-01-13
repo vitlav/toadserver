@@ -137,6 +137,10 @@
 		{
 			"ImportPath": "golang.org/x/crypto/ripemd160",
 			"Rev": "4ed45ec682102c643324fae5dff8dab085b6c300"
+		},
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Rev": "ad63b06ab3877915532cd30073b45d6f7e02b7cd"
 		}
 	]
 }

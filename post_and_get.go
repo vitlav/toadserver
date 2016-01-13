@@ -15,7 +15,7 @@ import (
 	//"github.com/eris-ltd/mint-client/Godeps/_workspace/src/github.com/tendermint/tendermint/types"
 	//"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/wire"
 	//cclient "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/rpc/core_client"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/Sirupsen/logrus"
 
 	"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/eris-ltd/common/go/ipfs"
 )

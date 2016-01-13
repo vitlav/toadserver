@@ -7,7 +7,7 @@ import (
 
 	"github.com/eris-ltd/toadserver/logger"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/Sirupsen/logrus"
 )
 
 func main() {
