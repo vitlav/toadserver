@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	fmt.Println("Initializing toadserver...")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/postfile/", postHandler) //post a file with its contents to gateway, returns hash
 	//ts makes & signs a nameTx, then posts to a node, which does the broadcasting
