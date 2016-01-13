@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/eris-ltd/toadserver/logger"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 func main() {
-	fmt.Println("Initializing toadserver...")
+	log.SetFormatter(logger.ErisFormatter{})
+	log.Warn("Initializing toadserver...")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/postfile/", postHandler) //post a file with its contents to gateway, returns hash
 	//ts makes & signs a nameTx, then posts to a node, which does the broadcasting

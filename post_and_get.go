@@ -2,45 +2,47 @@ package main
 
 import (
 	"bytes"
-	//"encoding/json"
 	"fmt"
 	"io/ioutil"
-	//"net"
 	"net/http"
 	"os"
-	//"reflect"
 	"strings"
 	"time"
+	//"encoding/json"
+	//"net"
+	//"reflect"
 
 	//"github.com/eris-ltd/mint-client/Godeps/_workspace/src/github.com/tendermint/tendermint/types"
 	//"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/wire"
-
 	//cclient "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/rpc/core_client"
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/eris-ltd/common/go/ipfs"
 )
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		fmt.Println("Receiving POST request")
+		log.Warn("Receiving POST request")
 
 		str := r.URL.Path[1:]
 		fn := strings.Split(str, "/")[1]
 
-		fmt.Printf("File name to register:\t%s\n", fn)
+		log.Warn("File name to register:\t%s\n", fn)
 
 		body := r.Body
 		b, err := ioutil.ReadAll(body)
 		if err != nil {
-			fmt.Printf("error reading file body: %v\n", err)
+			log.Warn("error reading file body:")
+			log.Error(err)
 		}
 
 		err = ioutil.WriteFile(fn, b, 0666)
 		if err != nil {
-			fmt.Printf("error writing temp file: %v\n", err)
+			log.Warn("error writing temp file:")
+			log.Error(err)
 		}
 		//should just put on whoever is doing the sending's gateway; since cacheHash won't send it there anyways
-		fmt.Println("Sending File to eris' IPFS gateway")
+		log.Warn("Sending File to eris' IPFS gateway")
 
 		// because IPFS is testy, we retry the put up to 5 times.
 		//TODO move this functionality to /common
@@ -60,24 +62,30 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 			// final time will throw
 			hash, err = ipfs.SendToIPFS(fn, "eris", bytes.NewBuffer([]byte{}))
 			if err != nil {
-				fmt.Printf("error sending to IPFS: %v\n", err)
+				log.Warn("error sending to IPFS:")
+				log.Error(err)
 			}
 		}
+		log.WithField("=>", hash).Warn("Hash received:")
 
-		fmt.Printf("Hash received:\t%s\n", hash)
+		log.WithFields(log.Fields{
+			"filename": fn,
+			"hash":     hash,
+		}).Warn("Sending name registry transaction:")
 
-		fmt.Printf("Sending name registry transaction:\t%s:%s\n", fn, hash)
 		err = UpdateNameReg(fn, hash)
 		if err != nil {
-			fmt.Printf("Error updating the name registry:\n%v\n", err)
+			log.Warn("error updating name registry:")
+			log.Error(err)
 			//return err
 		} else {
-			fmt.Println("Success updating the name registry")
-			fmt.Println("Caching hash now")
+			log.Warn("Success updating the name registry")
+			log.Warn("Caching hash now")
 			if err := cacheHashAll(hash); err != nil {
-				fmt.Printf("error caching hash: %v\n", err)
+				log.Warn("error caching hash:")
+				log.Error(err)
 			} else {
-				fmt.Println("Congratulations, you have successfully added your file to the toadserver")
+				log.Warn("Congratulations, you have successfully added your file to the toadserver")
 			}
 		}
 	}
@@ -86,12 +94,13 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 func cacheHashAll(hash string) error {
 
 	//TODO handle errors to prevent getting here...
-	fmt.Println("Pinning hash to your local IPFS node")
+	log.Warn("Pinning hash to your local IPFS node")
 
 	endpoint := fmt.Sprintf("http://0.0.0.0:11113/cacheHash/%s", hash)
 	_, err := http.Post(endpoint, "", nil)
 	if err != nil {
-		fmt.Printf("cache post error: %v\n", err)
+		log.Warn("error making post request:")
+		log.Error(err)
 		//return err
 	}
 
@@ -100,10 +109,11 @@ func cacheHashAll(hash string) error {
 	IPs := strings.Split(IPaddrs, ",")
 	for _, ip := range IPs {
 		endpoint := fmt.Sprintf("http://%s:11113/cacheHash/%s", ip, hash)
-		fmt.Printf("Pinning hash to remote IPFS/toadserver node: %s\n", endpoint)
+		log.WithField("=>", endpoint).Warn("Pinning hash to remote IPFS/toadserver node: %s\n", endpoint)
 		_, err := http.Post(endpoint, "", nil)
 		if err != nil {
-			fmt.Printf("cache post error to endpoint: %s\n%v\n", endpoint, err)
+			log.WithField("=>", endpoint).Warn("error making post request to:")
+			log.Error(err)
 			continue
 			//TODO return err?
 		}
@@ -113,21 +123,23 @@ func cacheHashAll(hash string) error {
 
 func getHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		fmt.Println("Receiving GET request")
+		log.Warn("Receiving GET request")
 		//take filename & send ask chain for hash
 		str := r.URL.Path[1:]
 		fn := strings.Split(str, "/")[1]
 
-		fmt.Printf("Looking for filename:\t%s\n", fn)
+		log.WithField("=>", fn).Warn("Looking for filename:")
 		hash, err := getInfos(fn)
 		if err != nil {
-			fmt.Printf("error getting name reg info: %v\n", err)
+			log.Warn("error getting name reg info:")
+			log.Error(err)
 		}
-		fmt.Printf("Found corresponding hash:\t%s\n", hash)
+
+		log.WithField("=>", hash).Warn("Found corresponding hash:")
+		log.Warn("Getting it from IPFS...")
 
 		// because IPFS is testy, we retry the put up to
 		// 5 times.
-		fmt.Println("Getting file from IPFS")
 		passed := false
 		//TODO move this to common
 		for i := 0; i < 9; i++ {
@@ -145,22 +157,26 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 			// final time will throw
 			err = ipfs.GetFromIPFS(hash, fn, "", bytes.NewBuffer([]byte{}))
 			if err != nil {
-				fmt.Printf("error getting file from IPFS: %v\n", err)
+				log.Warn("error getting file from IPFS:")
+				log.Error(err)
 			}
 		}
 
 		contents, err := ioutil.ReadFile(fn)
 		if err != nil {
-			fmt.Printf("error reading file: %v\n", err)
+			log.Warn("error reading file:")
+			log.Error(err)
 		}
 		w.Write(contents) //outputfile
 
 		err = os.Remove(fn)
 		if err != nil {
-			fmt.Printf("error removing file: %v\n", err)
+			log.Warn("error removing file:")
+			log.Error(err)
 		}
 
-		fmt.Println("Congratulations, you have successfully retreived you file from the toadserver")
+		//TODO throw err before getting here...
+		log.Warn("Congratulations, you have successfully retreived you file from the toadserver")
 	}
 }
 
