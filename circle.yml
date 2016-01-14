@@ -27,4 +27,5 @@ test:
         - docker pull quay.io/eris/ipfs
         - docker pull quay.io/eris/toadserver  
         - go get ${CLI}/cmd/eris
+        - eris init
         - bash test.sh
