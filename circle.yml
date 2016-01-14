@@ -2,6 +2,7 @@ machine:
   environment:
     GOPATH: /home/ubuntu/.go_workspace
     REPO: ${GOPATH}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+    CLI: github.com/eris-ltd/eris-cli
   post:
     - echo "GOPATH $GOPATH and REPO $REPO"
     - rm -rf $REPO
@@ -19,6 +20,11 @@ dependencies:
 
 test:
   override:
-        - go get github.com/eris-ltd/eris-cli/cmd/eris
+        - go get $CLI
+        - cd ${GOPATH}/src/${CLI}
+        - git checkout origin develop
+        - git pull origin develop
+        - go install ./cmd/eris
         - eris init --yes --pull-images=true --testing=true
+        - cd $REPO
         - bash test.sh
