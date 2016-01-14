@@ -20,11 +20,11 @@ dependencies:
 
 test:
   override:
-        - go get $CLI
-        - cd ${GOPATH}/src/${CLI}
-        - git checkout origin develop
-        - git pull origin develop
-        - go install ./cmd/eris
-        - eris init --yes --pull-images=true --testing=true
-        - cd $REPO
+        - docker pull quay.io/eris/base  
+        - docker pull quay.io/eris/keys
+        - docker pull quay.io/eris/data  
+        - docker pull quay.io/eris/erisdb:0.11.0  
+        - docker pull quay.io/eris/ipfs
+        - docker pull quay.io/eris/toadserver  
+        - go get ${CLI}/cmd/eris
         - bash test.sh
