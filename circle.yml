@@ -20,5 +20,5 @@ dependencies:
 test:
   override:
         - go get github.com/eris-ltd/eris-cli/cmd/eris
-        - eris init
+        - eris init --yes --pull-images=true --testing=true
         - bash test.sh
