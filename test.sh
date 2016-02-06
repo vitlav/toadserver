@@ -4,24 +4,6 @@ echo ""
 eris services start keys -p
 sleep 2
 
-echo "Generating a key"
-echo ""
-ADDR=`eris keys gen`
-
-echo "ADDRESS:"
-echo "$ADDR"
-echo ""
-
-echo "Setting pubkey"
-echo ""
-PUB=`eris keys pub $ADDR`
-echo "PUBKEY:"
-echo "$PUB"
-echo ""
-
-echo "Exporting keys from container to host"
-echo ""
-eris keys export $ADDR
 
 echo "Setting chain name:"
 CHAIN_NAME=toadserver_chn
@@ -33,25 +15,26 @@ SERVICE_NAME=toadserver_srv
 echo "$SERVICE_NAME"
 echo ""
 
+echo "Making key and genesis file"
+eris chains make --chain-type=simplechain $CHAIN_NAME
 
-echo "Setting and making chain directory:"
-CHAIN_DIR=~/.eris/chains/$CHAIN_NAME
-mkdir $CHAIN_DIR
+echo "Getting address"
+echo ""
+ADDR=`eris services exec keys "ls /home/eris/.eris/keys/data"`
+#ADDR=`eris keys ls --container --quiet` ##TODO quiet flag
+echo "$ADDR"
+echo ""
+
+echo "Setting pubkey"
+echo ""
+PUB=`eris keys pub $ADDR`
+echo "$PUB"
+echo ""
+
+echo "Setting and chain directory:"
+CHAIN_DIR=$HOME/.eris/chains/$CHAIN_NAME
 echo "$CHAIN_DIR"
 echo ""
-
-echo "Converting key to tendermint format:"
-PRIV=`eris keys convert $ADDR`
-echo "$PRIV"
-echo ""
-
-echo "Piping key to "$CHAIN_DIR"/priv_validator.json"
-echo ""
-echo "$PRIV" > "$CHAIN_DIR/priv_validator.json"
-
-echo "Making genesis file & piping to ${CHAIN_DIR}/genesis.json"
-echo ""
-eris chains make-genesis $CHAIN_NAME $PUB > "${CHAIN_DIR}/genesis.json"
 
 echo "Copying default config to "$CHAIN_DIR"/default.toml"
 echo ""
@@ -67,7 +50,6 @@ echo "$HOME/.eris/services/${SERVICE_NAME}.toml"
 echo ""
 
 PK=${PUB//[^A-Z0-9]/}
-
 
 echo "Setting TOADSERVER_IPFS_NODES"
 #NODES="ip1,ip2,ip3" #give IPs where toadserver is running
@@ -112,7 +94,7 @@ echo "$SERV_DEF" > "$HOME/.eris/services/${SERVICE_NAME}.toml"
 echo "Starting toadserver"
 echo ""
 eris services start $SERVICE_NAME --chain=$CHAIN_NAME
-sleep 2
+sleep 5
 
 #<< COMMENT
 echo "Generating test file"
@@ -126,6 +108,13 @@ echo "$FILE_CONTENTS_POST" > $FILE_PATH
 echo "--------POSTING to toadserver------------"
 echo ""
 #TODO use services ports?
+
+## wake up ipfs
+F_CONTENTS_POST="work pls ipfs"
+F_NAME=guh.txt
+F_PATH=$CHAIN_DIR/$FILE_NAME
+echo "$F_CONTENTS_POST" > $F_PATH
+eris files put $F_PATH
 
 curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@$FILE_PATH"
 
@@ -167,6 +156,7 @@ echo ""
 eris services stop $SERVICE_NAME --all --data --force --rm --vol #--chain=$CHAIN_NAME 
 
 #throws an error but cleans up anyway; see https://github.com/eris-ltd/eris-cli/issues/345
+#TODO has been fixed!
 echo ""
 echo "API Error is false positive."
 echo ""
@@ -177,7 +167,7 @@ eris chains rm $CHAIN_NAME --data
 echo "Removing latent dirs and files"
 echo ""
 rm -rf $CHAIN_DIR 
-rm -rf $HOME/.eris/keys/data/${ADDR}
+#rm -rf $HOME/.eris/keys/data/${ADDR}
 rm $HOME/.eris/services/${SERVICE_NAME}".toml"
 rm $HOME/.eris/chains/${CHAIN_NAME}".toml"
 
