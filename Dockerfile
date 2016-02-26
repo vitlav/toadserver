@@ -11,12 +11,12 @@ ENV INSTALL_PATH $INSTALL_BASE/$NAME
 RUN mkdir -p $CLONE_PATH
 
 #for local buildz
-#COPY . $CLONE_PATH
-#WORKDIR $CLONE_PATH
+COPY . $CLONE_PATH
+WORKDIR $CLONE_PATH
 
-RUN git clone -q https://github.com/$REPO $CLONE_PATH
-RUN git checkout -q $BRANCH
-RUN go install
+#RUN git clone -q https://github.com/$REPO $CLONE_PATH
+#RUN git checkout -q $BRANCH
+RUN cd $CLONE_PATH && go install
 
 USER $USER
 WORKDIR $ERIS
@@ -24,3 +24,4 @@ WORKDIR $ERIS
 VOLUME $ERIS
 EXPOSE 11113
 CMD ["toadserver"]
+#ENTRYPOINT ["toadserver"]

@@ -8,13 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
-	//"encoding/json"
-	//"net"
-	//"reflect"
 
-	//"github.com/eris-ltd/mint-client/Godeps/_workspace/src/github.com/tendermint/tendermint/types"
-	//"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/wire"
-	//cclient "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/rpc/core_client"
 	log "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/Sirupsen/logrus"
 
 	"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/eris-ltd/common/go/ipfs"
@@ -79,8 +73,17 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 			log.Error(err)
 			//return err
 		} else {
-			log.Warn("Success updating the name registry")
-			log.Warn("Caching hash now")
+			/*
+				log.Warn("Success updating the name registry")
+				log.Warn("Caching hash locally now")
+				hash, err = ipfs.SendToIPFS(fn, "", bytes.NewBuffer([]byte{}))
+				if err != nil {
+					log.Warn("error sending to IPFS:")
+					log.Error(err)
+				}
+				log.WithField("=>", hash).Warn("Hash pinned to you local node")
+			*/
+
 			if err := cacheHashAll(hash); err != nil {
 				log.Warn("error caching hash:")
 				log.Error(err)
@@ -94,15 +97,23 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 func cacheHashAll(hash string) error {
 
 	//TODO handle errors to prevent getting here...
-	log.Warn("Pinning hash to your local IPFS node")
+	//	log.Warn("Pinning hash to your local IPFS node")
 
-	endpoint := fmt.Sprintf("http://0.0.0.0:11113/cacheHash/%s", hash)
-	_, err := http.Post(endpoint, "", nil)
-	if err != nil {
-		log.Warn("error making post request:")
-		log.Error(err)
-		//return err
-	}
+	//pinned, err := ipfs.PinToIPFS(hash, bytes.NewBuffer([]byte{}))
+	/*	if err != nil {
+			log.WithField("=>", fmt.Sprintf("%s", err)).Warn("fack")
+			return fmt.Errorf("error pinning to local IPFS node: %v\n", err)
+		}
+		log.WithField("=>", pinned).Warn("Hash pinned to you local node")
+
+		//XXX the problem is here!
+		endpoint := fmt.Sprintf("http://0.0.0.0:11113/cacheHash/%s", hash)
+		_, err := http.Post(endpoint, "", nil)
+		if err != nil {
+			log.Warn("error making post request:")
+			log.Error(err)
+			//return err
+		}*/
 
 	// IPaddrs, _ := getTheNames() -> use mindy to get ipAddrs
 	IPaddrs := os.Getenv("TOADSERVER_IPFS_NODES")
