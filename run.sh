@@ -56,6 +56,8 @@ echo "Setting TOADSERVER_IPFS_NODES"
 NODES="" #give IPs where toadserver is running
 echo "$NODES"
 
+# TODO use existing servDef;
+# and pass in env vars via --env on start
 read -r -d '' SERV_DEF << EOM
 name = "$SERVICE_NAME"
 chain = "\$chain:toad:l"
@@ -96,80 +98,7 @@ echo ""
 eris services start $SERVICE_NAME --chain=$CHAIN_NAME
 sleep 5
 
-#<< COMMENT
-echo "Generating test file"
-echo ""
-FILE_CONTENTS_POST="testing the toadserver"
-FILE_NAME=hungryToad.txt
-FILE_PATH=$CHAIN_DIR/$FILE_NAME
+echo "Toadserver started"
 
-echo "$FILE_CONTENTS_POST" > $FILE_PATH
+#XXX test moved to tests/test.sh
 
-echo "--------POSTING to toadserver------------"
-echo ""
-#TODO use services ports?
-
-## wake up ipfs
-F_CONTENTS_POST="work pls ipfs"
-F_NAME=guh.txt
-F_PATH=$CHAIN_DIR/$FILE_NAME
-echo "$F_CONTENTS_POST" > $F_PATH
-eris files put $F_PATH
-
-curl --silent -X POST http://0.0.0.0:11113/postfile/${FILE_NAME} --data-binary "@$FILE_PATH"
-
-echo "Sleeping for 5 seconds: let IPFS boot & nameReg transaction confirm."
-echo "."
-sleep 1
-echo ".."
-sleep 1
-echo "..."
-sleep 1
-echo "...."
-sleep 1
-echo "....."
-sleep 1
-echo ""
-
-echo "----------GETING from toadserver-----------"
-echo ""
-
-FILE_CONTENTS_GET=$(curl --silent -X GET http://0.0.0.0:11113/getfile/${FILE_NAME}) #output directly or use -o to save to file & read
-
-echo "Comparing posted content with getted content"
-echo ""
-if [[ "$FILE_CONTENTS_POST" != "$FILE_CONTENTS_GET" ]]; then
-	echo "FAIL"
-	echo "GOT $FILE_CONTENTS_GET"
-	echo "EXPECTED $FILE_CONTENTS_POST"
-else
-	echo "PASS"
-fi
-
-echo ""
-echo "-------------TEARDOWN-----------------"
-echo ""
-echo "Kill & Remove Services & Dependencies"
-echo ""
-
-#stop/rm chain as dep doesn't work
-eris services stop $SERVICE_NAME --all --data --force --rm --vol #--chain=$CHAIN_NAME 
-
-#throws an error but cleans up anyway; see https://github.com/eris-ltd/eris-cli/issues/345
-#TODO has been fixed!
-echo ""
-echo "API Error is false positive."
-echo ""
-
-eris chains stop $CHAIN_NAME --force --data --vol
-eris chains rm $CHAIN_NAME --data 
-
-echo "Removing latent dirs and files"
-echo ""
-rm -rf $CHAIN_DIR 
-#rm -rf $HOME/.eris/keys/data/${ADDR}
-rm $HOME/.eris/services/${SERVICE_NAME}".toml"
-rm $HOME/.eris/chains/${CHAIN_NAME}".toml"
-
-echo "Toadserver tests complete."
-#COMMENT
