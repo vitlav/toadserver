@@ -1,3 +1,5 @@
+[![Circle CI](https://circleci.com/gh/eris-ltd/toadserver/tree/master.svg?style=svg)](https://circleci.com/gh/eris-ltd/toadserver)
+
 #Toadserver
 
 The toadserver is your own hosted IPFS gateway that is intended to use smart contracts to manage read/write access (note: only name registry entries are currently supported). Files are added to IPFS then cached (pinned) to your permissioned (or not) gateway. Meanwhile, an entry is created on chain pointing the file name to its IPFS hash and recording who posted what when. This is a first stab at decentralizing GitHub.
