@@ -110,7 +110,7 @@ test_setup(){
   ensure_running keys
 
   # make a chain
-  eris chains make --account-types=Full:1 toadserver-tests-$uuid 1>/dev/null
+  eris chains make --account-types=Full:1 $chain_name 1>/dev/null
   key1_addr=$(cat $chain_dir/accounts.csv | grep $name_full | cut -d ',' -f 1)
   echo -e "Default Key =>\t\t\t\t$key1_addr"
   eris chains new $chain_name --dir $chain_dir 1>/dev/null
