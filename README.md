@@ -11,7 +11,7 @@ The toadserver is intended to run as an `eris services`, and connect to a chain 
 
 ##Installation
 
-See [this tutorial](link) for information on setting up the toadserver using [eris-cli](https://github.com/eris-ltd/eris-cli).
+See [this tutorial](https://docs.erisindustries.com/tutorials/advanced/services-making/) for information on setting up the toadserver using [eris-cli](https://github.com/eris-ltd/eris-cli).
 
 ##Under the hood
 To add a file: `curl -X POST http://localhost:11113/postfile/fileName.ext --data-binary "@fileName.ext"` where `fileName.ext` is the path to file. A few things will happen: 
