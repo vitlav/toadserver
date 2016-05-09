@@ -6,7 +6,12 @@ import (
 	"io"
 	"os"
 
+<<<<<<< HEAD
 	cclient "github.com/tendermint/tendermint/rpc/core_client"
+=======
+	cclient "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/rpc/core_client"
+	. "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/eris-ltd/common/go/common"
+>>>>>>> godep /common & use IfExit
 )
 
 var (
@@ -38,7 +43,7 @@ func getInfos(fileName string) (string, error) {
 	if fileName == "" {
 		//to support an endpoint that lists available files
 		_, err := c.ListNames()
-		ifExit(err)
+		IfExit(err)
 		/*res := make([]string, len(names.Names))
 		i := 0
 		for n := range names.Names {
@@ -49,7 +54,7 @@ func getInfos(fileName string) (string, error) {
 		return "", nil
 	} else {
 		n, err := c.GetName(fileName)
-		ifExit(err)
+		IfExit(err)
 
 		name := n.Entry.Data
 		return name, nil
@@ -61,22 +66,22 @@ func checkAddr(addr string, w io.Writer) error {
 	c := cclient.NewClient(DefaultNodeRPCAddr, REQUEST_TYPE)
 	if addr == "" {
 		_, err := c.ListAccounts()
-		ifExit(err)
+		IfExit(err)
 		//formatOutput(r)
 		return nil //result of format output
 	} else {
 		addrBytes, err := hex.DecodeString(addr)
 		if err != nil {
-			ifExit(fmt.Errorf("Addr %s is improper hex: %v", addr, err))
+			IfExit(fmt.Errorf("Addr %s is improper hex: %v", addr, err))
 		}
 		r, err := c.GetAccount(addrBytes)
-		ifExit(err)
+		IfExit(err)
 		if r == nil {
-			ifExit(fmt.Errorf("Account %X does not exist", addrBytes))
+			IfExit(fmt.Errorf("Account %X does not exist", addrBytes))
 		}
 		r2 := r.Account
 		if r2 == nil {
-			ifExit(fmt.Errorf("Account %X does not exist", addrBytes))
+			IfExit(fmt.Errorf("Account %X does not exist", addrBytes))
 		}
 	}
 	//TODO get more infos (like check if they have perms!)

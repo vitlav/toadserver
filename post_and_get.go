@@ -216,7 +216,7 @@ func cacheHash(w http.ResponseWriter, r *http.Request) {
 	c := cclient.NewClient(mindyUrl, "HTTP")
 
 	res, err := c.ListNames()
-	ifExit(err)
+	IfExit(err) (common)
 
 	allTheNames, err := formatOutput([]string{}, 1, res)
 	if err != nil {

@@ -22,13 +22,3 @@ func main() {
 
 	http.ListenAndServe(":11113", mux)
 }
-
-//-------------------------------------------------------
-//--helpers
-func ifExit(err error) {
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-}
