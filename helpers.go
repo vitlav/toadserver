@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/wire"
+	"github.com/tendermint/tendermint/wire"
 )
 
 func prettyPrint(o interface{}) (string, error) {
