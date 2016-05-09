@@ -6,12 +6,9 @@ import (
 	"io"
 	"os"
 
-<<<<<<< HEAD
+	. "github.com/eris-ltd/common/go/common"
+
 	cclient "github.com/tendermint/tendermint/rpc/core_client"
-=======
-	cclient "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/tendermint/tendermint/rpc/core_client"
-	. "github.com/eris-ltd/toadserver/Godeps/_workspace/src/github.com/eris-ltd/common/go/common"
->>>>>>> godep /common & use IfExit
 )
 
 var (

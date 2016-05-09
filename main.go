@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 
 	log "github.com/Sirupsen/logrus"
 	logger "github.com/eris-ltd/common/go/log"
@@ -20,5 +18,7 @@ func main() {
 
 	mux.HandleFunc("/getfile/", getHandler) // request by name, receive contents
 
-	http.ListenAndServe(":11113", mux)
+	if err := http.ListenAndServe(":11113", mux); err != nil {
+		log.Warn(err)
+	}
 }

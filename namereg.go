@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -12,7 +11,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/eris-ltd/mint-client/mintx/core"
-	"github.com/tendermint/tendermint/types"
+	//"github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/wire"
 )
 
@@ -71,35 +70,4 @@ func UpdateNameReg(fileName, hash string) error {
 	}
 	return nil
 
-}
-
-func receiveNameTx(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		//TODO check valid Name reg
-		//str := r.URL.Path[1:]
-		//hash := strings.Split(str, "/")[1]
-
-		txData, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			log.Warn("error reading body:")
-			log.Error(err)
-		}
-
-		tx := new(types.NameTx)
-		n := new(int64)
-		txD := bytes.NewReader(txData)
-
-		wire.ReadBinary(tx, txD, n, &err)
-		if err != nil {
-			log.Warn("error reading binary:")
-			log.Error(err)
-		}
-
-		rpcAddr := os.Getenv("MINTX_NODE_ADDR")
-		_, err1 := core.Broadcast(tx, rpcAddr)
-		if err1 != nil {
-			log.Warn("error broadcasting:")
-			log.Error(err)
-		}
-	}
 }
