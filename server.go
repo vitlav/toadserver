@@ -18,7 +18,7 @@ import (
 )
 
 // todo clean this up!
-func postHandler(w http.ResponseWriter, r *http.Request) {
+func postHandler(w http.ResponseWriter, r *http.Request) *toadError {
 	if r.Method == "POST" {
 		log.Warn("Receiving POST request")
 
@@ -30,15 +30,11 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		body := r.Body
 		b, err := ioutil.ReadAll(body)
 		if err != nil {
-			log.Warn("error reading file body:")
-			log.Error(err)
-			return
+			return &toadError{err, "error reading body", 400}
 		}
 
 		if err := ioutil.WriteFile(fn, b, 0666); err != nil {
-			log.Warn("error writing temp file:")
-			log.Error(err)
-			return
+			return &toadError{err, "error writing file", 400}
 		}
 		//should just put on whoever is doing the sending's gateway; since cacheHash won't send it there anyways
 		log.Warn("Sending File to eris' IPFS gateway")
@@ -61,9 +57,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 			// final time will throw
 			hash, err = ipfs.SendToIPFS(fn, "eris", bytes.NewBuffer([]byte{}))
 			if err != nil {
-				log.Warn("error sending to IPFS:")
-				log.Error(err)
-				return
+				return &toadError{err, "error sending to IPFS", 400}
 			}
 		}
 		log.WithField("=>", hash).Warn("Hash received:")
@@ -74,21 +68,18 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		}).Warn("Sending name registry transaction:")
 
 		if err := UpdateNameReg(fn, hash); err != nil {
-			log.Warn("error updating name registry:")
-			log.Error(err)
-			return
+			return &toadError{err, "error updating namereg", 400}
 		}
 
 		if err := cacheHashAll(hash); err != nil {
-			log.Warn("error caching hash:")
-			log.Error(err)
-			return
+			return &toadError{err, "error cashing hashes", 400}
 		}
 		log.Warn("Congratulations, you have successfully added your file to the toadserver")
 	}
+	return nil
 }
 
-func getHandler(w http.ResponseWriter, r *http.Request) {
+func getHandler(w http.ResponseWriter, r *http.Request) *toadError {
 	if r.Method == "GET" {
 		log.Warn("Receiving GET request")
 		//take filename & send ask chain for hash
@@ -98,9 +89,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 		log.WithField("=>", fn).Warn("Looking for filename:")
 		hash, err := getInfos(fn)
 		if err != nil {
-			log.Warn("error getting name reg info:")
-			log.Error(err)
-			return
+			return &toadError{err, "error getting namereg info", 400}
 		}
 
 		log.WithField("=>", hash).Warn("Found corresponding hash:")
@@ -124,45 +113,39 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 		if !passed {
 			// final time will throw
 			if err := ipfs.GetFromIPFS(hash, fn, "", bytes.NewBuffer([]byte{})); err != nil {
-				log.Warn("error getting file from IPFS:")
-				log.Error(err)
-				return
+				return &toadError{err, "error getting file from IPFS", 400}
 			}
 		}
 
 		contents, err := ioutil.ReadFile(fn)
 		if err != nil {
-			log.Warn("error reading file:")
-			log.Error(err)
-			return
+			return &toadError{err, "error reading file", 400}
 		}
 		w.Write(contents) //outputfile
 
 		if err := os.Remove(fn); err != nil {
-			log.Warn("error removing file:")
-			log.Error(err)
-			return
+			return &toadError{err, "error removing file", 400}
 		}
 
 		log.Warn("Congratulations, you have successfully retreived you file from the toadserver")
 	}
+	return nil
 }
 
 // TODO this endpoint should require authentication
-func cacheHash(w http.ResponseWriter, r *http.Request) {
+func cacheHash(w http.ResponseWriter, r *http.Request) *toadError {
 	str := r.URL.Path[1:]
 	hash := strings.Split(str, "/")[1]
 
 	pinned, err := ipfs.PinToIPFS(hash, bytes.NewBuffer([]byte{}))
 	if err != nil {
-		strang := fmt.Sprintf("error pinning to local IPFS node: %v\n", err)
-		w.Write([]byte(strang))
-	} else {
-		w.Write([]byte(fmt.Sprintf("Caching succesful:\t%s\n", pinned)))
+		return &toadError{err, "error pinning to local IPFS node", 400}
 	}
+	w.Write([]byte(fmt.Sprintf("Caching succesful:\t%s\n", pinned)))
+	return nil
 }
 
-func receiveNameTx(w http.ResponseWriter, r *http.Request) {
+func receiveNameTx(w http.ResponseWriter, r *http.Request) *toadError {
 	if r.Method == "POST" {
 		//TODO check valid Name reg
 		//str := r.URL.Path[1:]
@@ -170,8 +153,7 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) {
 
 		txData, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Warn("error reading body:")
-			log.Error(err)
+			return &toadError{err, "error reading body", 400}
 		}
 
 		tx := new(types.NameTx)
@@ -180,15 +162,14 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) {
 
 		wire.ReadBinary(tx, txD, n, &err)
 		if err != nil {
-			log.Warn("error reading binary:")
-			log.Error(err)
+			return &toadError{err, "error reading binary", 400}
 		}
 
 		rpcAddr := os.Getenv("MINTX_NODE_ADDR")
 		_, err1 := core.Broadcast(tx, rpcAddr)
 		if err1 != nil {
-			log.Warn("error broadcasting:")
-			log.Error(err)
+			return &toadError{err, "error broadcasting", 400}
 		}
 	}
+	return nil
 }
