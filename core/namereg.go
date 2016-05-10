@@ -60,7 +60,7 @@ func UpdateNameReg(fileName, hash string) error {
 	// eventually route the TX to the nodes using mindy
 	txD := bytes.NewReader(w.Bytes())
 	//it can also query for the name reg to ensure things are good
-	endpoint := "http://0.0.0.0:11113/" + "receiveNameTx/" //+ hash
+	endpoint := "http://0.0.0.0:11113/" + "receiveNameTx?hash=" + hash
 	_, err = http.Post(endpoint, "", txD)
 	if err != nil {
 		return errors.New(fmt.Sprintf("post error: %v\n", err))

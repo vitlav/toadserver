@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/eris-ltd/mint-client/mintx/core"
@@ -18,27 +17,6 @@ import (
 	"github.com/eris-ltd/common/go/ipfs"
 )
 
-func parseURL(url string) (map[string]string, error) {
-	payload := strings.Split(url, "?")[1]
-	infos := strings.Split(payload, "&")
-
-	if len(infos) != 1 {
-		return nil, fmt.Errorf("bad url") //todo: explain
-	}
-
-	info := strings.Split(infos[0], "=")
-	if info[0] != "fileName" || info[0] != "hash" {
-		return nil, fmt.Errorf("bad url")
-	}
-	
-	parsedURL := make(map[string]string, 1)
-	parsedURL[info[0]] = info[1]
-
-	return parsedURL, nil
-}
-
-
-// todo properly parse url
 // todo clean this up!
 func postHandler(w http.ResponseWriter, r *http.Request) *toadError {
 	if r.Method == "POST" {
@@ -52,8 +30,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) *toadError {
 
 		log.WithField("=>", fileName).Warn("File to register:")
 
-		body := r.Body
-		b, err := ioutil.ReadAll(body)
+		b, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return &toadError{err, "error reading body", 400}
 		}
@@ -61,31 +38,11 @@ func postHandler(w http.ResponseWriter, r *http.Request) *toadError {
 		if err := ioutil.WriteFile(fileName, b, 0666); err != nil {
 			return &toadError{err, "error writing file", 400}
 		}
-		//should just put on whoever is doing the sending's gateway; since cacheHash won't send it there anyways
-		log.Warn("Sending File to eris' IPFS gateway")
 
-		// because IPFS is testy, we retry the put up to 5 times.
-		//TODO move this functionality to /common
-		var hash string
-		passed := false
-		for i := 0; i < 5; i++ {
-			hash, err = ipfs.SendToIPFS(fileName, "eris", bytes.NewBuffer([]byte{}))
-			if err != nil {
-				time.Sleep(2 * time.Second)
-				continue
-			} else {
-				passed = true
-				break
-			}
+		hash, err := tscore.PutFile(fileName, b)
+		if err != nil {
+			return &toadError{err, "error putting file", 400}
 		}
-		if !passed {
-			// final time will throw
-			hash, err = ipfs.SendToIPFS(fileName, "eris", bytes.NewBuffer([]byte{}))
-			if err != nil {
-				return &toadError{err, "error sending to IPFS", 400}
-			}
-		}
-		log.WithField("=>", hash).Warn("Hash received:")
 
 		log.WithFields(log.Fields{
 			"filename": fileName,
@@ -96,8 +53,13 @@ func postHandler(w http.ResponseWriter, r *http.Request) *toadError {
 			return &toadError{err, "error updating namereg", 400}
 		}
 
-		if err := tscore.CacheHashAll(hash); err != nil {
-			return &toadError{err, "error cashing hashes", 400}
+		//if err := tscore.CacheHashAll(hash); err != nil {
+		//	return &toadError{err, "error cashing hashes", 400}
+		//}
+
+		// remove file written by PutFile
+		if err := os.Remove(fileName); err != nil {
+			return &toadError{err, "error removing file", 400}
 		}
 		log.Warn("Congratulations, you have successfully added your file to the toadserver")
 	}
@@ -122,32 +84,9 @@ func getHandler(w http.ResponseWriter, r *http.Request) *toadError {
 
 		log.WithField("=>", hash).Warn("Found corresponding hash:")
 		log.Warn("Getting it from IPFS...")
-
-		// because IPFS is testy, we retry the put up to
-		// 5 times.
-		passed := false
-		//TODO move this to common
-		for i := 0; i < 9; i++ {
-			err = ipfs.GetFromIPFS(hash, fileName, "", bytes.NewBuffer([]byte{}))
-			if err != nil {
-				time.Sleep(2 * time.Second)
-				continue
-			} else {
-				passed = true
-				break
-			}
-		}
-
-		if !passed {
-			// final time will throw
-			if err := ipfs.GetFromIPFS(hash, fileName, "", bytes.NewBuffer([]byte{})); err != nil {
-				return &toadError{err, "error getting file from IPFS", 400}
-			}
-		}
-
-		contents, err := ioutil.ReadFile(fileName)
+		contents, err := tscore.GetFile(fileName, hash)
 		if err != nil {
-			return &toadError{err, "error reading file", 400}
+			return &toadError{err, "error getting file", 400}
 		}
 		w.Write(contents) //outputfile
 
@@ -168,7 +107,7 @@ func cacheHash(w http.ResponseWriter, r *http.Request) *toadError {
 	}
 	hash := params["hash"]
 
-	pinned, err := ipfs.PinToIPFS(hash, bytes.NewBuffer([]byte{}))
+	pinned, err := ipfs.PinToIPFS(hash, w)
 	if err != nil {
 		return &toadError{err, "error pinning to local IPFS node", 400}
 	}
@@ -179,10 +118,10 @@ func cacheHash(w http.ResponseWriter, r *http.Request) *toadError {
 func receiveNameTx(w http.ResponseWriter, r *http.Request) *toadError {
 	if r.Method == "POST" {
 		//TODO check valid Name reg
-		//params, err := parseURL(fmt.Sprintf("%s", r.URL))
-		//if err != nil {
-		//	return &toadError{err, "error parsing URL", 400}
-		//}
+		_, err := parseURL(fmt.Sprintf("%s", r.URL))
+		if err != nil {
+			return &toadError{err, "error parsing URL", 400}
+		}
 		//hash := params["hash"]
 
 		txData, err := ioutil.ReadAll(r.Body)
@@ -208,6 +147,26 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) *toadError {
 	return nil
 }
 
+func parseURL(url string) (map[string]string, error) {
+	payload := strings.Split(url, "?")[1]
+
+	infos := strings.Split(payload, "&")
+
+	if len(infos) != 1 {
+		return nil, fmt.Errorf("bad url length") //todo: explain
+	}
+
+	info := strings.Split(infos[0], "=")
+	//if (info[0] != "fileName" || info[0] != "hash") {
+	//	return nil, fmt.Errorf("bad url name")
+	//}
+
+	parsedURL := make(map[string]string, 1)
+	parsedURL[info[0]] = info[1]
+
+	return parsedURL, nil
+}
+
 // ---------------- error handler ------------------
 
 type toadError struct {
@@ -220,7 +179,7 @@ type toadHandler func(http.ResponseWriter, *http.Request) *toadError
 
 func (endpoint toadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := endpoint(w, r); err != nil {
-		http.Error(w, err.Message, err.Code)
+		http.Error(w, fmt.Sprintf("%s %v", err.Message, err.Error), err.Code)
 	}
 }
 

@@ -42,7 +42,7 @@ tests/test.sh
 test_exit=$?
 
 # ----------------------------------------------------------
-# Clenup
+# Cleanup
 
 echo
 echo

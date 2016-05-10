@@ -157,9 +157,16 @@ perform_tests(){
     echo "$hack"
   fi
 
-## need dm ip
-  dm_active=$(docker-machine active)
-  dm_ip=$(docker-machine ip $dm_active)
+  dm_ip="0.0.0.0"
+  
+  if [ "$ci" = true ]
+  then
+    ## need dm ip
+    dm_active=$(docker-machine active)
+    dm_ip=$(docker-machine ip $dm_active)
+    ERIS_IPFS_HOST="$dm_ip"
+  fi
+
 
   echo "Posting to toadserver"
   #XXX hangs here

@@ -9,13 +9,16 @@ import (
 
 var (
 	DefaultChainAddr = "http://0.0.0.0:46657"
-	ChainFlag        string // to overide the above
+	ChainFlag        string
+
+	DefaultToadPort = "11113"
+	ToadPort        string
 )
 
 func main() {
 	BuildToadserverCommand()
-	//Toadserver.PersistenPreRun = before
-	//Toadserver.PersistenPostRun = after
+	Toadserver.PersistentPreRun = before
+	//Toadserver.PersistentPostRun = after
 	Toadserver.Execute()
 }
 
@@ -35,8 +38,13 @@ func BuildToadserverCommand() {
 }
 
 func addToadserverFlags() {
+	startCmd.Flags().StringVarP(&ToadPort, "port", "", DefaultToadPort, "specify the port for toadserver to run on")
+
 	putCmd.Flags().StringVarP(&ChainFlag, "node-addr", "", DefaultChainAddr, "specify the chain to use")
+	putCmd.Flags().StringVarP(&ToadPort, "port", "", DefaultToadPort, "specify the port that toadserver was started on")
+
 	getCmd.Flags().StringVarP(&ChainFlag, "node-addr", "", DefaultChainAddr, "specify the chain to use")
+	getCmd.Flags().StringVarP(&ToadPort, "port", "", DefaultToadPort, "specify the port that toadserver was started on")
 }
 
 var startCmd = &cobra.Command{

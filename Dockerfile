@@ -24,4 +24,4 @@ WORKDIR $ERIS
 
 VOLUME $ERIS
 EXPOSE 11113
-CMD ["toadserver start"]
+CMD ["toadserver", "start"]

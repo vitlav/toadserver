@@ -1,41 +1,32 @@
 package core
 
 import (
-	//"bytes"
+	"bytes"
 	"fmt"
 	//"io/ioutil"
-	"net/http"
-	"os"
-	"strings"
+	//"net/http"
+	//"os"
+	//"strings"
 	//"time"
 
+	"github.com/eris-ltd/common/go/ipfs"
 	log "github.com/Sirupsen/logrus"
-
 )
 
 func CacheHashAll(hash string) error {
 
 	//TODO handle errors to prevent getting here...
-	//	log.Warn("Pinning hash to your local IPFS node")
+	log.Warn("Pinning hash to your local IPFS node")
 
-	//pinned, err := ipfs.PinToIPFS(hash, bytes.NewBuffer([]byte{}))
-	/*	if err != nil {
-			log.WithField("=>", fmt.Sprintf("%s", err)).Warn("")
-			return fmt.Errorf("error pinning to local IPFS node: %v\n", err)
-		}
-		log.WithField("=>", pinned).Warn("Hash pinned to you local node")
-
-		//XXX the problem is here!
-		endpoint := fmt.Sprintf("http://0.0.0.0:11113/cacheHash/%s", hash)
-		_, err := http.Post(endpoint, "", nil)
-		if err != nil {
-			log.Warn("error making post request:")
-			log.Error(err)
-			//return err
-		}*/
+	pinned, err := ipfs.PinToIPFS(hash, bytes.NewBuffer([]byte{}))
+	if err != nil {
+		log.WithField("=>", fmt.Sprintf("%s", err)).Warn("")
+		return fmt.Errorf("error pinning to local IPFS node: %v\n", err)
+	}
+	log.WithField("=>", pinned).Warn("Hash pinned to you local node")
 
 	// IPaddrs, _ := getTheNames() -> use mindy to get ipAddrs
-	IPaddrs := os.Getenv("TOADSERVER_IPFS_NODES")
+	/*IPaddrs := os.Getenv("TOADSERVER_IPFS_NODES")
 	IPs := strings.Split(IPaddrs, ",")
 	for _, ip := range IPs {
 		endpoint := fmt.Sprintf("http://%s:11113/cacheHash/%s", ip, hash)
@@ -47,7 +38,7 @@ func CacheHashAll(hash string) error {
 			continue
 			//TODO return err?
 		}
-	}
+	}*/
 	return nil
 }
 
