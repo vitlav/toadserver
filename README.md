@@ -14,10 +14,10 @@ The toadserver is intended to run as an `eris services`, and connect to a chain 
 See [this tutorial](https://docs.erisindustries.com/tutorials/advanced/services-making/) for information on setting up the toadserver using [eris-cli](https://github.com/eris-ltd/eris-cli).
 
 ##Under the hood
-To add a file: `curl -X POST http://localhost:11113/postfile/fileName.ext --data-binary "@fileName.ext"` where `fileName.ext` is the path to file. A few things will happen: 
+To add a file: `curl -X POST http://localhost:11113/postfile?fileName=fileName.ext --data-binary "@fileName.ext"` where `fileName.ext` is the path to file. A few things will happen: 
 * 1) file will be put to IPFS and its hash returned. This happens regardless of permissions. (although, this allows spam & will need to be addressed)
 * 2) a wrapper around `mint-client` will sign the tx (locally) and POST it to a validator node which then broadcasts it to the chain (to be deprecated in favour or contracts)
-* 3) provided the tx is valid, a namereg entry is created whereby `fileName.ext` points to an IPFS hash containing the contents of the POSTed file, now accesible via GET: `curl -X GET http://localhost:11113/getfile/fileName.ext`  
+* 3) provided the tx is valid, a namereg entry is created whereby `fileName.ext` points to an IPFS hash containing the contents of the POSTed file, now accesible via GET: `curl -X GET http://localhost:11113/getfile=fileName=fileName.ext`  
 
 ##Contracts
 Coming in next release. Stay tuned!
