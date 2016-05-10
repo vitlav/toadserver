@@ -1,14 +1,13 @@
 package main
 
 import (
-	
 	log "github.com/Sirupsen/logrus"
 	logger "github.com/eris-ltd/common/go/log"
-	
+
 	"github.com/spf13/cobra"
 )
 
-func main()
+func main() {
 	BuildToadserverCommand()
 	//Toadserver.PersistenPreRun = before
 	//Toadserver.PersistenPostRun = after
@@ -16,10 +15,10 @@ func main()
 }
 
 var Toadserver = &cobra.Command{
-	Use: "toadserver",
+	Use:   "toadserver",
 	Short: "",
-	Long: "",
-	Run: func(cmd *cobra.Command, args []string) { cmd.Help() },
+	Long:  "",
+	Run:   func(cmd *cobra.Command, args []string) { cmd.Help() },
 }
 
 func BuildToadserverCommand() {
@@ -34,24 +33,24 @@ func addToadserverFlags() {
 }
 
 var startCmd = &cobra.Command{
-	Use: "start",
+	Use:   "start",
 	Short: "",
-	Long: "",
-	Run: startServer,
+	Long:  "",
+	Run:   startServer,
 }
 
 var putCmd = &cobra.Command{
-	Use: "put",
+	Use:   "put",
 	Short: "",
-	Long: "",
-	Run: putFiles,
+	Long:  "",
+	Run:   putFiles,
 }
 
 var getCmd = &cobra.Command{
-	Use: "get",
+	Use:   "get",
 	Short: "",
-	Long: "",
-	Run: getFiles,
+	Long:  "",
+	Run:   getFiles,
 }
 
 func before(cmd *cobra.Command, args []string) {

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	tscore "github.com/eris-ltd/toadserver/core"
 	log "github.com/Sirupsen/logrus"
 	"github.com/eris-ltd/mint-client/mintx/core"
 	"github.com/tendermint/tendermint/types"
@@ -67,11 +68,11 @@ func postHandler(w http.ResponseWriter, r *http.Request) *toadError {
 			"hash":     hash,
 		}).Warn("Sending name registry transaction:")
 
-		if err := UpdateNameReg(fn, hash); err != nil {
+		if err := tscore.UpdateNameReg(fn, hash); err != nil {
 			return &toadError{err, "error updating namereg", 400}
 		}
 
-		if err := cacheHashAll(hash); err != nil {
+		if err := tscore.CacheHashAll(hash); err != nil {
 			return &toadError{err, "error cashing hashes", 400}
 		}
 		log.Warn("Congratulations, you have successfully added your file to the toadserver")
@@ -87,7 +88,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) *toadError {
 		fn := strings.Split(str, "/")[1]
 
 		log.WithField("=>", fn).Warn("Looking for filename:")
-		hash, err := getInfos(fn)
+		hash, err := tscore.GetInfos(fn)
 		if err != nil {
 			return &toadError{err, "error getting namereg info", 400}
 		}
@@ -173,3 +174,25 @@ func receiveNameTx(w http.ResponseWriter, r *http.Request) *toadError {
 	}
 	return nil
 }
+
+// ---------------- error handler ------------------
+
+type toadError struct {
+	Error   error
+	Message string
+	Code    int
+}
+
+type toadHandler func(http.ResponseWriter, *http.Request) *toadError
+
+func (endpoint toadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if err := endpoint(w, r); err != nil {
+		http.Error(w, err.Message, err.Code)
+	}
+}
+
+/* status codes
+StatusBadRequest = 400
+StatusNotFound = 404
+StatusInternalServerError = 500
+*/

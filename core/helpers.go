@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	//"bytes"
@@ -13,7 +13,7 @@ import (
 
 )
 
-func cacheHashAll(hash string) error {
+func CacheHashAll(hash string) error {
 
 	//TODO handle errors to prevent getting here...
 	//	log.Warn("Pinning hash to your local IPFS node")

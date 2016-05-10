@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"encoding/hex"
@@ -35,7 +35,7 @@ func init() {
 
 }
 
-func getInfos(fileName string) (string, error) {
+func GetInfos(fileName string) (string, error) {
 	c := cclient.NewClient(DefaultNodeRPCAddr, REQUEST_TYPE)
 	if fileName == "" {
 		//to support an endpoint that lists available files
