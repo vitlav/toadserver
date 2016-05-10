@@ -7,6 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	DefaultChainAddr = "http://0.0.0.0:46657"
+	ChainFlag        string // to overide the above
+)
+
 func main() {
 	BuildToadserverCommand()
 	//Toadserver.PersistenPreRun = before
@@ -30,6 +35,8 @@ func BuildToadserverCommand() {
 }
 
 func addToadserverFlags() {
+	putCmd.Flags().StringVarP(&ChainFlag, "node-addr", "", DefaultChainAddr, "specify the chain to use")
+	getCmd.Flags().StringVarP(&ChainFlag, "node-addr", "", DefaultChainAddr, "specify the chain to use")
 }
 
 var startCmd = &cobra.Command{

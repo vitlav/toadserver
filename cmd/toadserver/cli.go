@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	//"github.com/rs/cors" TODO
+	"github.com/rs/cors"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -21,9 +21,9 @@ func startServer(cmd *cobra.Command, args []string) {
 
 	mux.Handle("/getfile/", toadHandler(getHandler)) // request by name, receive contents
 
-	//handler := cors.Default().Handler(mux) TODO
+	handler := cors.Default().Handler(mux)
 
-	if err := http.ListenAndServe(":11113", mux); err != nil {
+	if err := http.ListenAndServe(":11113", handler); err != nil {
 		log.Warn(err)
 	}
 }
