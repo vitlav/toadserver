@@ -16,12 +16,11 @@ WORKDIR $CLONE_PATH
 
 #RUN git clone -q https://github.com/$REPO $CLONE_PATH
 #RUN git checkout -q $BRANCH
-RUN cd $CLONE_PATH && go install
+RUN cd $CLONE_PATH && go install ./cmd/toadserver
 
 USER $USER
 WORKDIR $ERIS
 
 VOLUME $ERIS
 EXPOSE 11113
-CMD ["toadserver"]
-#ENTRYPOINT ["toadserver"]
+CMD ["toadserver start"]
