@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -39,7 +38,7 @@ func UpdateNameReg(fileName, hash string) error {
 
 	nTx, err := core.Name(nodeAddr, signAddr, pubkey, addr, amtS, nonceS, feeS, name, data)
 	if err != nil {
-		return errors.New(fmt.Sprintf("corename error: %v\n", err))
+		return fmt.Errorf("corename error: %v\n", err)
 	}
 	log.WithField("=>", fmt.Sprintf("%v", nTx)).Warn("Success, nameTx created:")
 
@@ -48,8 +47,7 @@ func UpdateNameReg(fileName, hash string) error {
 	log.Warn("Signing transaction...")
 	_, err = core.SignAndBroadcast(chainID, nodeAddr, signAddr, nTx, true, false, false)
 	if err != nil {
-		return errors.New(fmt.Sprintf("sign error: %v\n", err))
-
+		return fmt.Errorf("sign error: %v\n", err)
 	}
 
 	n := new(int64)
@@ -63,10 +61,10 @@ func UpdateNameReg(fileName, hash string) error {
 	endpoint := "http://0.0.0.0:11113/" + "receiveNameTx?hash=" + hash
 	_, err = http.Post(endpoint, "", txD)
 	if err != nil {
-		return errors.New(fmt.Sprintf("post error: %v\n", err))
+		return fmt.Errorf("post error: %v\n", err)
 	}
 	if err := os.Remove(fileName); err != nil {
-		return errors.New(fmt.Sprintf("remove file error: %v\n", err))
+		return fmt.Errorf("remove file error: %v\n", err)
 	}
 	return nil
 
