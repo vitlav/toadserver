@@ -25,9 +25,9 @@ func startServer(cmd *cobra.Command, args []string) {
 
 	handler := cors.Default().Handler(mux)
 
-	log.WithField("port", ToadPort).Warn("Toadserver started at:")
-	port := fmt.Sprintf(":%s", ToadPort)
-	if err := http.ListenAndServe(port, handler); err != nil {
+	toads := fmt.Sprintf("%s:%s", ToadHost, ToadPort)
+	log.WithField("=>", toads).Warn("Toadserver started at:")
+	if err := http.ListenAndServe(toads, handler); err != nil {
 		log.Warn(err)
 	}
 }
@@ -40,24 +40,24 @@ func putFiles(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.IfExit(err)
 	}
-	url := "http://192.168.99.100:" + ToadPort + "/postfile?fileName=" + fileName
-	req, err := http.Post(url, "", file)
+	url := "http://" + ToadHost + ":" + ToadPort + "/postfile?fileName=" + fileName
+	_, err = http.Post(url, "", file)
 	if err != nil {
 		common.IfExit(err)
 	}
-	fmt.Printf("YOYOYO %v", req)
+	log.Warn("success")
 }
 
 func getFiles(cmd *cobra.Command, args []string) {
 	fileName := args[0]
 
-	url := "http://192.168.99.100:" + ToadPort + "/getfile?fileName=" + fileName
+	url := "http://" + ToadHost + ":" + ToadPort + "/getfile?fileName=" + fileName
 	resp, err := http.Get(url)
-	defer resp.Body.Close()
 	if err != nil {
 		common.IfExit(err)
 	}
-	fmt.Printf("YOYOYO %v", resp)
+	defer resp.Body.Close()
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		common.IfExit(err)

@@ -157,8 +157,6 @@ perform_tests(){
     echo "$hack"
   fi
 
-  dm_ip="0.0.0.0"
-  
   if [ "$ci" = true ]
   then
     ## need dm ip
@@ -170,7 +168,8 @@ perform_tests(){
 
   echo "Posting to toadserver"
   #XXX hangs here
-  curl --silent -X POST http://${dm_ip}:11113/postfile?fileName=${FILE_NAME} --data-binary "@$FILE_PATH"
+  toadserver put $FILE_NAME --host $dm_ip
+  #curl --silent -X POST http://${dm_ip}:11113/postfile?fileName=${FILE_NAME} --data-binary "@$FILE_PATH"
 
   if [ $? -ne 0 ]
   then
@@ -181,7 +180,8 @@ perform_tests(){
   sleep 5 # let all the things happen
 
   # ask toadserver for the file
-  FILE_CONTENTS_GET=$(curl --silent -X GET http://${dm_ip}:11113/getfile?fileName=${FILE_NAME}) #output directly or use -o to save to file & read
+  FILE_CONTENTS_GET=$(toadserver get ${FILE_NAME} --host ${dm_ip})
+  #FILE_CONTENTS_GET=$(curl --silent -X GET http://${dm_ip}:11113/getfile?fileName=${FILE_NAME}) #output directly or use -o to save to file & read
   if [ $? -ne 0 ]
   then
     test_exit=1
