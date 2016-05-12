@@ -68,7 +68,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) *toadError {
 
 func getHandler(w http.ResponseWriter, r *http.Request) *toadError {
 	if r.Method == "GET" {
-		log.Warn("Receiving GET request")
+		log.Warn("Receiving GET file request")
 		//take filename & send ask chain for hash
 		params, err := parseURL(fmt.Sprintf("%s", r.URL))
 		if err != nil {
@@ -96,6 +96,20 @@ func getHandler(w http.ResponseWriter, r *http.Request) *toadError {
 
 		log.Warn("Congratulations, you have successfully retreived you file from the toadserver")
 	}
+	return nil
+}
+
+func listHandler(w http.ResponseWriter, r *http.Request) *toadError {
+	if r.Method == "GET" {
+		log.Warn("Receiving GET list files request")
+	}
+	names, err := tscore.ListAllTheNames()
+	if err != nil {
+		return &toadError{err, "can't list names", 451} //BadLegal
+	}
+	all := strings.Join(names, ",")
+	log.Warn(all)
+	w.Write([]byte(all))
 	return nil
 }
 

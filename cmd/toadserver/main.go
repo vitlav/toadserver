@@ -25,6 +25,7 @@ func main() {
 	Toadserver.Execute()
 }
 
+// TODO helpers
 var Toadserver = &cobra.Command{
 	Use:   "toadserver",
 	Short: "",
@@ -36,10 +37,12 @@ func BuildToadserverCommand() {
 	Toadserver.AddCommand(startCmd)
 	Toadserver.AddCommand(putCmd)
 	Toadserver.AddCommand(getCmd)
+	Toadserver.AddCommand(lsCmd)
 
 	addToadserverFlags()
 }
 
+// TODO deduplicate flags; add persistence?
 func addToadserverFlags() {
 	startCmd.Flags().StringVarP(&ToadHost, "host", "", DefaultToadHost, "specify the host for toadserver to run on")
 	startCmd.Flags().StringVarP(&ToadPort, "port", "", DefaultToadPort, "specify the port for toadserver to run on")
@@ -72,6 +75,13 @@ var getCmd = &cobra.Command{
 	Short: "",
 	Long:  "",
 	Run:   getFiles,
+}
+
+var lsCmd = &cobra.Command{
+	Use:   "ls",
+	Short: "",
+	Long:  "",
+	Run:   listFiles,
 }
 
 func before(cmd *cobra.Command, args []string) {

@@ -35,6 +35,7 @@ func init() {
 
 }
 
+//TODO cleanup -> func GetHashFromFileName()
 func GetInfos(fileName string) (string, error) {
 	c := cclient.NewClient(DefaultNodeRPCAddr, REQUEST_TYPE)
 	if fileName == "" {

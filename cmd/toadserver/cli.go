@@ -16,8 +16,9 @@ func startServer(cmd *cobra.Command, args []string) {
 	log.Warn("Initializing toadserver...")
 
 	mux := http.NewServeMux()
-	mux.Handle("/postfile", toadHandler(postHandler)) //post a file with its contents to gateway, returns hash
-	mux.Handle("/getfile", toadHandler(getHandler))   // request by name, receive contents
+	mux.Handle("/postfile", toadHandler(postHandler))  //post a file with its contents to gateway, returns hash
+	mux.Handle("/getfile", toadHandler(getHandler))    // request by name, receive contents
+	mux.Handle("/listfiles", toadHandler(listHandler)) // request by name, receive contents
 
 	//ts makes & signs a nameTx, then posts to a node, which does the broadcasting
 	mux.Handle("/receiveNameTx", toadHandler(receiveNameTx)) //unpack tx, if valid, add to chain
@@ -30,6 +31,22 @@ func startServer(cmd *cobra.Command, args []string) {
 	if err := http.ListenAndServe(toads, handler); err != nil {
 		log.Warn(err)
 	}
+}
+
+//TODO deduplicate URLs
+func listFiles(cmd *cobra.Command, args []string) {
+	url := "http://" + ToadHost + ":" + ToadPort + "/listfiles"
+	resp, err := http.Get(url)
+	if err != nil {
+		common.IfExit(err)
+	}
+	defer resp.Body.Close()
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		common.IfExit(err)
+	}
+	log.Warn(string(b))
+
 }
 
 func putFiles(cmd *cobra.Command, args []string) {
