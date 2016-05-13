@@ -2,14 +2,10 @@ package core
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"reflect"
-
-	"github.com/tendermint/tendermint/wire"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/eris-ltd/common/go/common"
+	//"github.com/eris-ltd/common/go/common"
 	"github.com/eris-ltd/common/go/ipfs"
 )
 
@@ -42,27 +38,4 @@ func CacheHashAll(hash string) error {
 		}
 	}*/
 	return nil
-}
-
-func prettyPrint(o interface{}) (string, error) {
-	var prettyJSON bytes.Buffer
-	err := json.Indent(&prettyJSON, wire.JSONBytes(o), "", "\t")
-	if err != nil {
-		return "", err
-	}
-	return string(prettyJSON.Bytes()), nil
-}
-
-func formatOutput(args []string, i int, o interface{}) (string, error) {
-	if len(args) < i+1 {
-		return prettyPrint(o)
-	}
-	arg0 := args[i]
-	v := reflect.ValueOf(o).Elem()
-	name, err := common.FieldFromTag(v, arg0)
-	if err != nil {
-		return "", err
-	}
-	f := v.FieldByName(name)
-	return prettyPrint(f.Interface())
 }

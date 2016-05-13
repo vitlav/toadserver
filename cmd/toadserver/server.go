@@ -18,6 +18,7 @@ import (
 )
 
 // todo clean this up!
+// smarter error codes ?
 func postHandler(w http.ResponseWriter, r *http.Request) *toadError {
 	if r.Method == "POST" {
 		log.Warn("Receiving POST request")

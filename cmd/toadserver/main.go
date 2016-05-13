@@ -3,9 +3,12 @@ package main
 import (
 	log "github.com/Sirupsen/logrus"
 	logger "github.com/eris-ltd/common/go/log"
+	"github.com/eris-ltd/toadserver/version"
 
 	"github.com/spf13/cobra"
 )
+
+const VERSION = version.VERSION
 
 var (
 	DefaultChainAddr = "http://0.0.0.0:46657"
@@ -28,9 +31,11 @@ func main() {
 // TODO helpers
 var Toadserver = &cobra.Command{
 	Use:   "toadserver",
-	Short: "",
-	Long:  "",
-	Run:   func(cmd *cobra.Command, args []string) { cmd.Help() },
+	Short: "A simple IPFS & chain based download server.",
+	Long: `A simple IPFS & chain base download server.
+The toadserver indexes ipfs hashes on the name registry of
+a running eris-db chain.` + "\nVersion:\n" + VERSION,
+	Run: func(cmd *cobra.Command, args []string) { cmd.Help() },
 }
 
 func BuildToadserverCommand() {
@@ -43,6 +48,7 @@ func BuildToadserverCommand() {
 }
 
 // TODO deduplicate flags; add persistence?
+// expose any os.Getenv as a flag.
 func addToadserverFlags() {
 	startCmd.Flags().StringVarP(&ToadHost, "host", "", DefaultToadHost, "specify the host for toadserver to run on")
 	startCmd.Flags().StringVarP(&ToadPort, "port", "", DefaultToadPort, "specify the port for toadserver to run on")
@@ -58,29 +64,29 @@ func addToadserverFlags() {
 
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "",
-	Long:  "",
+	Short: "Start the toadserver.",
+	Long:  "Start the toadserver.",
 	Run:   startServer,
 }
 
 var putCmd = &cobra.Command{
-	Use:   "put",
-	Short: "",
-	Long:  "",
+	Use:   "put FILE",
+	Short: "Add a file to the toadserver.",
+	Long:  "Add a file to the toadserver.",
 	Run:   putFiles,
 }
 
 var getCmd = &cobra.Command{
-	Use:   "get",
-	Short: "",
-	Long:  "",
+	Use:   "get FILE",
+	Short: "Retrieve a file from the toadserver.",
+	Long:  "Retrieve a file from the toadserver.",
 	Run:   getFiles,
 }
 
 var lsCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "",
-	Long:  "",
+	Short: "List files registered with the toadserver.",
+	Long:  "List files registered with the toadserver.",
 	Run:   listFiles,
 }
 

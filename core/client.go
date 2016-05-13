@@ -65,8 +65,7 @@ func checkAddr(addr string, w io.Writer) error {
 	if addr == "" {
 		_, err := c.ListAccounts()
 		IfExit(err)
-		//formatOutput(r)
-		return nil //result of format output
+		return nil
 	} else {
 		addrBytes, err := hex.DecodeString(addr)
 		if err != nil {

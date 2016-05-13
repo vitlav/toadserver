@@ -20,7 +20,7 @@ func startServer(cmd *cobra.Command, args []string) {
 	mux.Handle("/getfile", toadHandler(getHandler))    // request by name, receive contents
 	mux.Handle("/listfiles", toadHandler(listHandler)) // request by name, receive contents
 
-	//ts makes & signs a nameTx, then posts to a node, which does the broadcasting
+	// these are used under the hood
 	mux.Handle("/receiveNameTx", toadHandler(receiveNameTx)) //unpack tx, if valid, add to chain
 	mux.Handle("/cacheHash", toadHandler(cacheHash))         //also if valid, pin hash on all hosts (except one that sent it :~( )
 
@@ -33,9 +33,16 @@ func startServer(cmd *cobra.Command, args []string) {
 	}
 }
 
-//TODO deduplicate URLs
+func urlHandler(host, port, endpoint, arg string) string {
+	if arg == "" {
+		return fmt.Sprintf("http://%s:%s%s", host, port, endpoint)
+	} else {
+		return fmt.Sprintf("http://%s:%s%s%s", host, port, endpoint, arg)
+	}
+}
+
 func listFiles(cmd *cobra.Command, args []string) {
-	url := "http://" + ToadHost + ":" + ToadPort + "/listfiles"
+	url := urlHandler(ToadHost, ToadPort, "/listfiles", "")
 	resp, err := http.Get(url)
 	if err != nil {
 		common.IfExit(err)
@@ -46,7 +53,6 @@ func listFiles(cmd *cobra.Command, args []string) {
 		common.IfExit(err)
 	}
 	log.Warn(string(b))
-
 }
 
 func putFiles(cmd *cobra.Command, args []string) {
@@ -57,18 +63,18 @@ func putFiles(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.IfExit(err)
 	}
-	url := "http://" + ToadHost + ":" + ToadPort + "/postfile?fileName=" + fileName
+	url := urlHandler(ToadHost, ToadPort, "/postfile?fileName=", fileName)
 	_, err = http.Post(url, "", file)
 	if err != nil {
 		common.IfExit(err)
 	}
-	log.Warn("success")
+	log.Warn("success. file added to toadserver")
 }
 
 func getFiles(cmd *cobra.Command, args []string) {
 	fileName := args[0]
 
-	url := "http://" + ToadHost + ":" + ToadPort + "/getfile?fileName=" + fileName
+	url := urlHandler(ToadHost, ToadPort, "/getfile?fileName=", fileName)
 	resp, err := http.Get(url)
 	if err != nil {
 		common.IfExit(err)
