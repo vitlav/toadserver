@@ -17,7 +17,24 @@ import (
 func GetFromIPFS(hash, fileName, dirName string, w io.Writer) error {
 	url := IPFSBaseGatewayUrl("") + hash
 	w.Write([]byte("GETing file from IPFS. Hash =>\t" + hash + ":" + fileName + "\n"))
-	return DownloadFromUrlToFile(url, fileName, dirName, w)
+
+	passed := false
+	for i := 0; i < 9; i++ {
+		if err := DownloadFromUrlToFile(url, fileName, dirName, w); err != nil {
+			time.Sleep(2 * time.Second)
+			continue
+		} else {
+			passed = true
+			break
+		}
+	}
+
+	if !passed {
+		if err := DownloadFromUrlToFile(url, fileName, dirName, w); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func CatFromIPFS(fileHash string, w io.Writer) (string, error) {

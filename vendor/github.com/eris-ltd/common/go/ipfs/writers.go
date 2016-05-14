@@ -6,14 +6,32 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 )
 
 func SendToIPFS(fileName, gateway string, w io.Writer) (string, error) {
 	url := IPFSBaseGatewayUrl(gateway)
 	w.Write([]byte("POSTing file to IPFS. File =>\t" + fileName + "\n"))
-	head, err := UploadFromFileToUrl(url, fileName, w)
-	if err != nil {
-		return "", err
+
+	var head http.Header
+	var err error
+	passed := false
+	for i := 0; i < 9; i++ {
+		head, err = UploadFromFileToUrl(url, fileName, w)
+		if err != nil {
+			time.Sleep(2 * time.Second)
+			continue
+		} else {
+			passed = true
+			break
+		}
+	}
+
+	if !passed {
+		head, err = UploadFromFileToUrl(url, fileName, w)
+		if err != nil {
+			return "", err
+		}
 	}
 	hash, ok := head["Ipfs-Hash"]
 	if !ok || hash[0] == "" {
