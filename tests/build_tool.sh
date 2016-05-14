@@ -33,4 +33,4 @@ cd $repo
 # ---------------------------------------------------------------------------
 # Go!
 
-docker build -t $testimage:latest .
+docker build -t $testimage .

@@ -26,9 +26,9 @@ test:
     - "cd ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} && go install ./cmd/toadserver" 
     - "tests/circle_test.sh | tee $CIRCLE_ARTIFACTS/output.log; test ${PIPESTATUS[0]} -eq 0"
 
-#deployment:
-#  hub:
-#    branch: master
-#    commands:
-#      - tests/build_tool.sh
-#      - docker push quay.io/eris/toadserver
+deployment:
+  hub:
+    branch: develop
+    commands:
+      - tests/build_tool.sh
+      - docker push quay.io/eris/toadserver
