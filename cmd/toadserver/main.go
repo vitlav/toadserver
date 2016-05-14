@@ -60,6 +60,9 @@ func addToadserverFlags() {
 	getCmd.Flags().StringVarP(&ChainFlag, "node-addr", "", DefaultChainAddr, "specify the chain to use")
 	getCmd.Flags().StringVarP(&ToadHost, "host", "", DefaultToadHost, "specify the host")
 	getCmd.Flags().StringVarP(&ToadPort, "port", "", DefaultToadPort, "specify the port that toadserver was started on")
+
+	lsCmd.Flags().StringVarP(&ToadHost, "host", "", DefaultToadHost, "specify the host")
+	lsCmd.Flags().StringVarP(&ToadPort, "port", "", DefaultToadPort, "specify the port that toadserver was started on")
 }
 
 var startCmd = &cobra.Command{
