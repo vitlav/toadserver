@@ -124,14 +124,33 @@ perform_tests(){
   addr=$(eris services exec keys "ls /home/eris/.eris/keys/data")
   PUBKEY=$(eris keys pub $addr)
   echo 
+  echo "starting toadserver"
   eris services start toadserver --chain=$chain_name --env "MINTX_PUBKEY=$PUBKEY" --env "MINTX_CHAINID=$chain_name"
   if [ $? -ne 0 ]
   then
     test_exit=1
     return 1
   fi
+  
   sleep 5
-#TODO clean this up  
+  ensure_running ipfs
+
+# wake up ipfs
+# XXX shouldn't need this!!
+  F_CONTENTS_POST="work pls ipfs"
+  F_NAME=guh.txt
+  F_PATH=$chain_dir/$F_NAME
+  echo "$F_CONTENTS_POST" > $F_PATH
+  eris files put $F_PATH -d
+
+  #if [ "$ci" = true ]
+  #then
+    ## need dm ip
+    dm_active=$(docker-machine active)
+    dm_ip=$(docker-machine ip $dm_active)
+    ERIS_IPFS_HOST="$dm_ip"
+  #fi
+  
   echo "Generating test file"
   echo ""
   FILE_CONTENTS_POST="testing the toadserver"
@@ -140,30 +159,12 @@ perform_tests(){
 
   echo "$FILE_CONTENTS_POST" > $FILE_PATH
 
-# wake up ipfs
-# XXX shouldn't need this!!
-  F_CONTENTS_POST="work pls ipfs"
-  F_NAME=guh.txt
-  F_PATH=$chain_dir/$F_NAME
-  echo "$F_CONTENTS_POST" > $F_PATH
-  hack=$(eris files put $F_PATH)
-  
-  if [ $? -ne 0 ]
-  then
-    #XXX silence the hack's failure
-    #test_exit=1
-    #return 1
-    echo "ignore this hack:"
-    echo "$hack"
-  fi
-
-## need dm ip
-  dm_active=$(docker-machine active)
-  dm_ip=$(docker-machine ip $dm_active)
-
   echo "Posting to toadserver"
-  #XXX hangs here
-  curl --silent -X POST http://${dm_ip}:11113/postfile/${FILE_NAME} --data-binary "@$FILE_PATH"
+  here=`pwd`
+  cd $chain_dir
+  toadserver put $FILE_NAME --host=$dm_ip
+  cd $here
+  #curl --silent -X POST http://${dm_ip}:11113/postfile?fileName=${FILE_NAME} --data-binary "@$FILE_PATH"
 
   if [ $? -ne 0 ]
   then
@@ -174,7 +175,11 @@ perform_tests(){
   sleep 5 # let all the things happen
 
   # ask toadserver for the file
-  FILE_CONTENTS_GET=$(curl --silent -X GET http://${dm_ip}:11113/getfile/${FILE_NAME}) #output directly or use -o to save to file & read
+  echo "Getting from toadserver"
+  toadserver get $FILE_NAME --host=$dm_ip # drop $FILENAME in pwd
+  FILE_CONTENTS_GET=`cat $FILE_NAME`
+
+  #FILE_CONTENTS_GET=$(curl --silent -X GET http://${dm_ip}:11113/getfile?fileName=${FILE_NAME}) #output directly or use -o to save to file & read
   if [ $? -ne 0 ]
   then
     test_exit=1
