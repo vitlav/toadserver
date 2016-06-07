@@ -1,41 +1,35 @@
 package core
 
 import (
-	"bytes"
 	"fmt"
+	"net/http"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
-	//"github.com/eris-ltd/common/go/common"
-	"github.com/eris-ltd/common/go/ipfs"
 )
 
-// TODO clean up any unused
-// -> figure out soln for this func
-func CacheHashAll(hash string) error {
+func CacheHashAll(ipAddrs, hash string) error {
 
-	//TODO handle errors to prevent getting here...
-	log.Warn("Pinning hash to your local IPFS node")
-
-	pinned, err := ipfs.PinToIPFS(hash, bytes.NewBuffer([]byte{}))
-	if err != nil {
-		log.WithField("=>", fmt.Sprintf("%s", err)).Warn("")
-		return fmt.Errorf("error pinning to local IPFS node: %v\n", err)
-	}
-	log.WithField("=>", pinned).Warn("Hash pinned to you local node")
-
-	// IPaddrs, _ := getTheNames() -> use mindy to get ipAddrs
-	/*IPaddrs := os.Getenv("TOADSERVER_IPFS_NODES")
-	IPs := strings.Split(IPaddrs, ",")
+	//IPaddrs, _ := getTheNames() -> TODO use some decentralized DNS
+	IPs := strings.Split(ipAddrs, ",")
 	for _, ip := range IPs {
-		endpoint := fmt.Sprintf("http://%s:11113/cacheHash/%s", ip, hash)
+		endpoint := UrlHandler(ip, "11113", "/cacheHash?hash=", hash)
 		log.WithField("=>", endpoint).Warn("Pinning hash to remote IPFS/toadserver node:")
 		_, err := http.Post(endpoint, "", nil)
 		if err != nil {
+			// don't return an err, there are other IPs to hit
 			log.WithField("=>", endpoint).Warn("error making post request to:")
 			log.Error(err)
 			continue
-			//TODO return err?
 		}
-	}*/
+	}
 	return nil
+}
+
+func UrlHandler(host, port, endpoint, arg string) string {
+	if arg == "" {
+		return fmt.Sprintf("http://%s:%s%s", host, port, endpoint)
+	} else {
+		return fmt.Sprintf("http://%s:%s%s%s", host, port, endpoint, arg)
+	}
 }
