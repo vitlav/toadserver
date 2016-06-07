@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/eris-ltd/toadserver/core"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/eris-ltd/common/go/common"
 	"github.com/rs/cors"
@@ -33,16 +35,8 @@ func startServer(cmd *cobra.Command, args []string) {
 	}
 }
 
-func urlHandler(host, port, endpoint, arg string) string {
-	if arg == "" {
-		return fmt.Sprintf("http://%s:%s%s", host, port, endpoint)
-	} else {
-		return fmt.Sprintf("http://%s:%s%s%s", host, port, endpoint, arg)
-	}
-}
-
 func listFiles(cmd *cobra.Command, args []string) {
-	url := urlHandler(ToadHost, ToadPort, "/listfiles", "")
+	url := core.UrlHandler(ToadHost, ToadPort, "/listfiles", "")
 	resp, err := http.Get(url)
 	if err != nil {
 		common.IfExit(err)
@@ -63,7 +57,7 @@ func putFiles(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.IfExit(err)
 	}
-	url := urlHandler(ToadHost, ToadPort, "/postfile?fileName=", fileName)
+	url := core.UrlHandler(ToadHost, ToadPort, "/postfile?fileName=", fileName)
 	_, err = http.Post(url, "", file)
 	if err != nil {
 		common.IfExit(err)
@@ -74,7 +68,7 @@ func putFiles(cmd *cobra.Command, args []string) {
 func getFiles(cmd *cobra.Command, args []string) {
 	fileName := args[0]
 
-	url := urlHandler(ToadHost, ToadPort, "/getfile?fileName=", fileName)
+	url := core.UrlHandler(ToadHost, ToadPort, "/getfile?fileName=", fileName)
 	resp, err := http.Get(url)
 	if err != nil {
 		common.IfExit(err)

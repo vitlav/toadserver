@@ -54,9 +54,16 @@ func postHandler(w http.ResponseWriter, r *http.Request) *toadError {
 			return &toadError{err, "error updating namereg", 400}
 		}
 
-		//if err := tscore.CacheHashAll(hash); err != nil {
-		//	return &toadError{err, "error cashing hashes", 400}
-		//}
+
+		ipAddrs := os.Getenv("TOADSERVER_IPFS_NODES")
+		if ipAddrs != "" {
+			log.WithField("ips", ipAddrs).Warn("Caching hash to specified IP Addresses")
+			if err := tscore.CacheHashAll(ipAddrs, hash); err != nil {
+				return &toadError{err, "error cashing hashes", 400} // doesn't actually throw, but anyway
+			}
+		} else {
+			log.Warn("The environment variable TOADSERVER_IPFS_NODES was not set, continuing without additional caching")
+		}
 
 		// remove file written by PutFile
 		if err := os.Remove(fileName); err != nil {
