@@ -28,7 +28,7 @@ start=`pwd`
 # Get machine sorted
 
 echo "Setting up a Machine for Marmot Testing"
-docker-machine create --driver amazonec2 $machine 1>/dev/null
+docker-machine create --driver digitalocean $machine 1>/dev/null
 eval $(docker-machine env $machine)
 echo "Machine setup."
 echo
