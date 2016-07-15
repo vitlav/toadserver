@@ -1,5 +1,5 @@
-| Master | [![Circle CI](https://circleci.com/gh/eris-ltd/toadserver/tree/master.svg?style=svg)](https://circleci.com/gh/eris-ltd/toadserver)
-| Develop | [![Circle CI](https://circleci.com/gh/eris-ltd/toadserver/tree/develop.svg?style=svg)](https://circleci.com/gh/eris-ltd/toadserver)
+| Master | [![Circle CI](https://circleci.com/gh/eris-ltd/toadserver/tree/master.svg?style=svg)](https://circleci.com/gh/eris-ltd/toadserver/tree/master)
+| Develop | [![Circle CI](https://circleci.com/gh/eris-ltd/toadserver/tree/develop.svg?style=svg)](https://circleci.com/gh/eris-ltd/toadserver/tree/develop)
 
 #Toadserver
 

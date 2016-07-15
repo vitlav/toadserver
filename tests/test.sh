@@ -111,8 +111,8 @@ test_setup(){
 
   # make a chain
   eris chains make --account-types=Full:1 $chain_name 1>/dev/null
-  key1_addr=$(cat $chain_dir/accounts.csv | grep $name_full | cut -d ',' -f 1)
-  echo -e "Default Key =>\t\t\t\t$key1_addr"
+  PUBKEY=$(cat $chain_dir/accounts.csv | grep $name_full | cut -d ',' -f 1)
+  echo -e "Default PubKey =>\t\t\t\t$PUBKEY"
   eris chains new $chain_name --dir $chain_dir 1>/dev/null
   sleep 5 # boot time
   echo "Setup complete"
@@ -120,10 +120,6 @@ test_setup(){
 
 perform_tests(){
   echo
-  # need pubkey for toadserver
-  addr=$(eris services exec keys "ls /home/eris/.eris/keys/data")
-  PUBKEY=$(eris keys pub $addr)
-  echo 
   echo "starting toadserver"
   eris services start toadserver --chain=$chain_name --env "MINTX_PUBKEY=$PUBKEY" --env "MINTX_CHAINID=$chain_name"
   if [ $? -ne 0 ]
